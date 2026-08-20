@@ -1,0 +1,41 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "AI Cues",
+        "supportEmail": "elijah.a.allen@gmail.com",
+        "authorizedRedirectUris": [
+          "https://aicues.web.app",
+          "https://aicues.firebaseapp.com"
+        ]
+      }
+    },
+    "authorizedDomains": [
+      "localhost",
+      "fire-rat.firebaseapp.com",
+      "fire-rat.web.app",
+      "macromancer.web.app",
+      "macromancer.firebaseapp.com",
+      "aicues.web.app",
+      "aicues.firebaseapp.com"
+    ]
+  },
+  "hosting": {
+    "site": "aicues",
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "predeploy": ["npm run build"]
+  }
+}
