@@ -27,6 +27,20 @@ const { button, div, li, p, span, ul } = van.tags
 export function PromptBoard({ state, session }) {
   return div(
     { class: "cue-library" },
+    session
+      ? div(
+          { class: "cue-session" },
+          span({ class: "cue-session-label" }, session.label),
+          button(
+            {
+              type: "button",
+              class: "btn btn-sm btn-ghost cue-btn-ghost",
+              onclick: () => session.onSignOut?.(),
+            },
+            "Sign out",
+          ),
+        )
+      : null,
     session?.kind === "anonymous"
       ? p(
           { class: "cue-guest-warning", role: "status" },
@@ -44,29 +58,12 @@ export function PromptBoard({ state, session }) {
         PlusIcon(),
         "New prompt",
       ),
-      div(
-        { class: "cue-toolbar-end" },
-        () =>
-          PrimaryProviderSelect({
-            providers: listProviders(),
-            selectedId: state.providerId.val,
-            onChange: (id) => state.setProvider(id),
-          }),
-        session
-          ? div(
-              { class: "cue-session" },
-              span({ class: "cue-session-label" }, session.label),
-              button(
-                {
-                  type: "button",
-                  class: "btn btn-sm btn-ghost cue-btn-ghost",
-                  onclick: () => session.onSignOut?.(),
-                },
-                "Sign out",
-              ),
-            )
-          : null,
-      ),
+      () =>
+        PrimaryProviderSelect({
+          providers: listProviders(),
+          selectedId: state.providerId.val,
+          onChange: (id) => state.setProvider(id),
+        }),
     ),
     () =>
       PromptList({
