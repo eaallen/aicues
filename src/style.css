@@ -170,6 +170,15 @@ textarea {
   min-height: 0;
 }
 
+.cue-landing-hero {
+  display: none;
+}
+
+.cue-landing-auth-backdrop,
+.cue-landing-auth-close {
+  display: none;
+}
+
 .cue-landing-about,
 .cue-landing-auth {
   flex: 1 1 50%;
@@ -177,6 +186,14 @@ textarea {
   min-height: 0;
   overflow: auto;
   box-sizing: border-box;
+}
+
+.cue-landing-auth-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 22rem;
 }
 
 .cue-landing-about {
@@ -282,8 +299,93 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 22rem;
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .cue-landing {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .cue-landing-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding: 32px 24px 28px;
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+
+  .cue-landing-hero-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .cue-landing-hero-copy {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .cue-landing-get-started {
+    width: fit-content;
+    margin-top: 4px;
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .cue-landing-about {
+    flex: 1 1 auto;
+    padding: 32px 24px 48px;
+  }
+
+  .cue-landing-auth {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .cue-landing-auth-open {
+    display: flex;
+  }
+
+  .cue-landing-auth-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, #000 45%, transparent);
+  }
+
+  .cue-landing-auth-panel {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+    max-height: min(92vh, 640px);
+    overflow: auto;
+    padding: 16px 24px 28px;
+    border-radius: 12px 12px 0 0;
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    box-shadow: 0 -8px 32px color-mix(in srgb, #000 18%, transparent);
+  }
+
+  .cue-landing-auth-close {
+    display: block;
+    align-self: flex-end;
+    margin-bottom: 4px;
+  }
 }
 
 .cue-auth-title {

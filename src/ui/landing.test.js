@@ -14,7 +14,7 @@ describe("LandingPage", () => {
     }
   }
 
-  it("renders a two-pane layout with about HTML on the left and auth on the right", () => {
+  it("renders about content, a Get started CTA, and auth controls", () => {
     const authApi = mockAuthApi()
     const aboutHtml = "<h1>Why AI Cues</h1><p>Lorem ipsum.</p>"
     const root = LandingPage({ authApi, aboutHtml })
@@ -27,11 +27,39 @@ describe("LandingPage", () => {
     expect(about?.innerHTML).toContain("<h1>Why AI Cues</h1>")
     expect(about?.textContent).toContain("Lorem ipsum.")
 
+    const hero = root.querySelector(".cue-landing-hero")
+    expect(hero).toBeTruthy()
+    expect(hero?.textContent).toContain("Get started")
+
     const authPane = root.querySelector(".cue-landing-auth")
     expect(authPane).toBeTruthy()
+    expect(authPane?.classList.contains("cue-landing-auth-open")).toBe(false)
     expect(authPane?.querySelector(".cue-auth")).toBeTruthy()
     expect(authPane?.textContent).toContain("Continue with Google")
     expect(authPane?.textContent).toContain("Continue as guest")
+
+    root.remove()
+  })
+
+  it("opens and closes the auth modal from Get started and Close", () => {
+    const root = LandingPage({
+      authApi: mockAuthApi(),
+      aboutHtml: "<p>About</p>",
+    })
+    document.body.append(root)
+
+    const authPane = root.querySelector(".cue-landing-auth")
+    expect(authPane?.classList.contains("cue-landing-auth-open")).toBe(false)
+
+    root.querySelector(".cue-landing-get-started")?.click()
+    expect(authPane?.classList.contains("cue-landing-auth-open")).toBe(true)
+
+    root.querySelector(".cue-landing-auth-close")?.click()
+    expect(authPane?.classList.contains("cue-landing-auth-open")).toBe(false)
+
+    root.querySelector(".cue-landing-get-started")?.click()
+    root.querySelector(".cue-landing-auth-backdrop")?.click()
+    expect(authPane?.classList.contains("cue-landing-auth-open")).toBe(false)
 
     root.remove()
   })
