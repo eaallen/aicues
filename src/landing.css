@@ -1,0 +1,266 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+
+:root {
+  --color-base-100: #f5f5f5;
+  --color-base-content: #1a1a1a;
+  --color-muted: #6b6b6b;
+  --color-btn-solid: #e0e0e0;
+  --color-btn-solid-hover: #d4d4d4;
+  --color-btn-solid-border: #c8c8c8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-base-100: #1f1f1f;
+    --color-base-content: #e6e6e6;
+    --color-muted: #9b9b9b;
+    --color-btn-solid: #3d3d3d;
+    --color-btn-solid-hover: #484848;
+    --color-btn-solid-border: #4a4a4a;
+  }
+}
+
+html {
+  background: var(--color-base-100);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  color: var(--color-base-content);
+  background: var(--color-base-100);
+}
+
+:focus-visible {
+  outline: 1px solid #6f8fad;
+  outline-offset: 1px;
+}
+
+.cue-landing {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.cue-landing-hero {
+  display: none;
+}
+
+.cue-landing-about,
+.cue-landing-cta {
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.cue-landing-about {
+  padding: 48px 40px 64px;
+  background: #1a1a1a;
+  color: #f5f5f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cue-landing-about {
+    background: #ffffff;
+    color: #1a1a1a;
+  }
+}
+
+.cue-landing-about h1,
+.cue-landing-about h2 {
+  margin: 0 0 12px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.cue-landing-about h1 {
+  font-size: 28px;
+}
+
+.cue-landing-about h2 {
+  font-size: 18px;
+  margin-top: 28px;
+}
+
+.cue-landing-about p,
+.cue-landing-about li {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: -0.012em;
+  opacity: 0.92;
+}
+
+.cue-landing-about ol {
+  margin: 0 0 12px;
+  padding-left: 1.4em;
+  list-style-position: outside;
+  list-style-type: decimal;
+}
+
+.cue-landing-about li {
+  margin-bottom: 6px;
+}
+
+.cue-landing-about a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cue-landing-about blockquote {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-left: 3px solid currentColor;
+  opacity: 0.95;
+  font-style: italic;
+}
+
+.cue-landing-about blockquote p {
+  margin: 0;
+}
+
+.cue-landing-flow {
+  margin: 8px 0 20px;
+  padding: 8px 0;
+  overflow-x: auto;
+}
+
+.cue-landing-flow svg {
+  --cue-flow-line: color-mix(in srgb, currentColor 55%, transparent);
+  display: block;
+  width: 100%;
+  max-width: 629px;
+  height: auto;
+}
+
+.cue-flow-nodes rect {
+  fill: color-mix(in srgb, currentColor 12%, transparent);
+  stroke: color-mix(in srgb, currentColor 28%, transparent);
+  stroke-width: 1;
+}
+
+.cue-flow-nodes text {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+.cue-flow-edges {
+  fill: none;
+  stroke: var(--cue-flow-line);
+  stroke-width: 1;
+}
+
+.cue-landing-flow marker path {
+  fill: var(--cue-flow-line);
+}
+
+.cue-landing-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px 64px;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+}
+
+.cue-landing-cta-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.cue-landing-brand {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.cue-landing-lede {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.cue-landing-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid var(--color-btn-solid-border);
+  background: var(--color-btn-solid);
+  color: var(--color-base-content);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  text-decoration: none;
+}
+
+.cue-landing-cta-btn:hover {
+  background: var(--color-btn-solid-hover);
+}
+
+@media (max-width: 768px) {
+  .cue-landing {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .cue-landing-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding: 32px 24px 28px;
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+
+  .cue-landing-hero .cue-landing-brand {
+    font-size: 22px;
+  }
+
+  .cue-landing-hero .cue-landing-lede {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .cue-landing-hero .cue-landing-cta-btn {
+    width: fit-content;
+    margin-top: 4px;
+  }
+
+  .cue-landing-about {
+    flex: 1 1 auto;
+    padding: 32px 24px 48px;
+  }
+
+  .cue-landing-cta {
+    display: none;
+  }
+}

@@ -1,0 +1,9 @@
+# AI Cues
+
+> A prompt wallet: save cues you like and open them already filled in ChatGPT, Claude, Meta AI, and other AI tools.
+
+AI Cues stores prompts you want to keep, then opens them in your favorite AI chat with the text already filled in. Sign in to sync, or continue as a guest on one device.
+
+## Docs
+
+- [Home](https://aicues.web.app/): product overview and how it works

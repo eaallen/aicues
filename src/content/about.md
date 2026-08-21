@@ -23,8 +23,6 @@ flowchart LR
   C --> D[Chat opens prefilled]
 ```
 
-
-
 1. Sign in (or continue as a guest on this device).
 2. Click **New prompt**, paste the cue you like, and save it.
 3. Set your **Primary** AI in the toolbar — or use the row menu to pick a different one for a single launch.

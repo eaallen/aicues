@@ -1,32 +1,62 @@
-import { defineConfig } from "vite";
-import tailwindcss from "@tailwindcss/vite";
-import { markdownToHtml } from "./src/content/markdown.js";
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { defineConfig } from "vite"
+import tailwindcss from "@tailwindcss/vite"
+
+const root = dirname(fileURLToPath(import.meta.url))
 
 /**
- * Imports `.md` files as pre-rendered HTML strings (dev and production build).
+ * Rewrites `/app` to `app.html` in Vite dev and preview.
+ * @param {{ url?: string }} req
  */
-function markdownAsHtml() {
+function rewriteAppPath(req) {
+  const url = req.url ?? ""
+  const queryIndex = url.indexOf("?")
+  const path = queryIndex === -1 ? url : url.slice(0, queryIndex)
+  const query = queryIndex === -1 ? "" : url.slice(queryIndex)
+  if (path === "/app" || path === "/app/" || path.startsWith("/app/")) {
+    req.url = `/app.html${query}`
+  }
+}
+
+/**
+ * Serves the prompt library SPA at `/app` during `vite` and `vite preview`.
+ */
+function rewriteAppToHtml() {
   return {
-    name: "markdown-as-html",
+    name: "rewrite-app-to-html",
     /**
-     * @param {string} code
-     * @param {string} id
+     * @param {{ middlewares: { use: (handler: (req: { url?: string }, res: unknown, next: () => void) => void) => void } }} server
      */
-    transform(code, id) {
-      if (!id.endsWith(".md")) {
-        return;
-      }
-      return {
-        code: `export default ${JSON.stringify(markdownToHtml(code))};`,
-        map: null,
-      };
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        rewriteAppPath(req)
+        next()
+      })
     },
-  };
+    /**
+     * @param {{ middlewares: { use: (handler: (req: { url?: string }, res: unknown, next: () => void) => void) => void } }} server
+     */
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        rewriteAppPath(req)
+        next()
+      })
+    },
+  }
 }
 
 export default defineConfig({
-  plugins: [markdownAsHtml(), tailwindcss()],
+  plugins: [tailwindcss(), rewriteAppToHtml()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(root, "index.html"),
+        app: resolve(root, "app.html"),
+      },
+    },
+  },
   test: {
     environment: "jsdom",
   },
-});
+})
