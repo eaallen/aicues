@@ -1,6 +1,6 @@
 # AI Cues
 
-I have been using free AI services like [meta.ai](https://www.meta.ai) and [mistral.ai](https://chat.mistral.ai) to quickly simulate user prompts for the agent I am building.
+I have been using free AI services like [meta.ai](https://www.meta.ai) to quickly simulate user prompts for the agent I am building.
 
 The problem is that these AIs are not trying to behave like people — they are trying to be a helpful virtual assistant. That means their responses are way too wordy and "helpful" for what I need to test with. Plus, shorter responses are much faster to generate.
 
@@ -22,6 +22,8 @@ flowchart LR
   B --> C[Launch]
   C --> D[Chat opens prefilled]
 ```
+
+
 
 1. Sign in (or continue as a guest on this device).
 2. Click **New prompt**, paste the cue you like, and save it.
