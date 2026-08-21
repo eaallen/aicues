@@ -52,4 +52,22 @@ describe("AuthGate", () => {
 
     root.remove()
   })
+
+  it("remains a self-contained auth form without the landing about pane", () => {
+    const root = AuthGate({
+      authApi: {
+        signInWithGoogle: vi.fn(async () => {}),
+        signInWithEmail: vi.fn(async () => {}),
+        createWithEmail: vi.fn(async () => {}),
+        signInAnonymously: vi.fn(async () => {}),
+      },
+    })
+    document.body.append(root)
+
+    expect(root.classList.contains("cue-auth")).toBe(true)
+    expect(root.querySelector(".cue-landing")).toBeNull()
+    expect(root.querySelector(".cue-landing-about")).toBeNull()
+
+    root.remove()
+  })
 })

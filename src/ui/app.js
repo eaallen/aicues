@@ -10,8 +10,9 @@ import {
   saveProviderId,
   storedProviderId,
 } from "../providers/urls.js"
-import { AuthGate } from "./auth-gate.js"
+import aboutHtml from "../content/about.md"
 import { Composer } from "./composer.js"
+import { LandingPage } from "./landing.js"
 import { PromptBoard } from "./prompt-list.js"
 import { launchPrompt } from "./session.js"
 
@@ -325,7 +326,7 @@ export function AuthenticatedApp({
       return div({ class: "cue-board" }, p({ class: "cue-empty" }, "Loading…"))
     }
     if (current.type === "gate") {
-      return div({ class: "cue-board" }, AuthGate({ authApi: api }))
+      return LandingPage({ authApi: api, aboutHtml })
     }
     const open = openUrl ?? defaultOpenUrl
     const prefStorage = storage ?? globalThis.localStorage
