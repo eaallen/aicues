@@ -293,7 +293,7 @@ describe("AuthenticatedApp", () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
   }
 
-  it("shows the split landing page when signed out", async () => {
+  it("shows the auth gate when signed out", async () => {
     const authApi = {
       watch: (listener) => {
         listener(null)
@@ -308,9 +308,10 @@ describe("AuthenticatedApp", () => {
     })
     document.body.append(root)
     await tick()
-    expect(root.querySelector(".cue-landing")).toBeTruthy()
-    expect(root.querySelector(".cue-landing-about")).toBeTruthy()
-    expect(root.querySelector(".cue-landing-auth .cue-auth")).toBeTruthy()
+    expect(root.querySelector(".cue-gate")).toBeTruthy()
+    expect(root.querySelector(".cue-auth")).toBeTruthy()
+    expect(root.querySelector(".cue-landing")).toBeNull()
+    expect(root.querySelector(".cue-landing-about")).toBeNull()
     expect(root.textContent).toContain("Continue with Google")
     expect(root.textContent).toContain("Continue as guest")
     root.remove()

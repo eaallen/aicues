@@ -4,10 +4,171 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Cues</title>
+    <link rel="stylesheet" href="/src/landing.css" />
+    <title>AI Cues | Save prompts and launch them in ChatGPT, Claude, and more</title>
+    <meta
+      name="description"
+      content="AI Cues is a prompt wallet: save cues you like and open them already filled in ChatGPT, Claude, Meta AI, and other AI tools."
+    />
+    <link rel="canonical" href="https://aicues.web.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AI Cues" />
+    <meta property="og:title" content="AI Cues" />
+    <meta
+      property="og:description"
+      content="Save prompts you like and open them already filled in ChatGPT, Claude, Meta AI, and other AI tools."
+    />
+    <meta property="og:url" content="https://aicues.web.app/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="AI Cues" />
+    <meta
+      name="twitter:description"
+      content="Save prompts you like and open them already filled in ChatGPT, Claude, Meta AI, and other AI tools."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "AI Cues",
+        "url": "https://aicues.web.app/",
+        "description": "A prompt wallet: save cues you like and open them already filled in ChatGPT, Claude, Meta AI, and other AI tools.",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <div class="cue-landing">
+      <header class="cue-landing-hero">
+        <p class="cue-landing-brand">AI Cues</p>
+        <p class="cue-landing-lede">
+          Save prompts you like and open them in your favorite AI tools.
+        </p>
+        <a class="cue-landing-cta-btn" href="/app">Get started</a>
+      </header>
+      <article class="cue-landing-about">
+        <h1>AI Cues</h1>
+        <p>
+          I have been using free AI services like
+          <a href="https://www.meta.ai" target="_blank" rel="noopener noreferrer">meta.ai</a>
+          to quickly simulate user prompts for the agent I am building.
+        </p>
+        <p>
+          The problem is that these AIs are not trying to behave like people —
+          they are trying to be a helpful virtual assistant. That means their
+          responses are way too wordy and "helpful" for what I need to test
+          with. Plus, shorter responses are much faster to generate.
+        </p>
+        <p>I came up with a prompt that did what I wanted nicely:</p>
+        <blockquote>
+          <p>
+            keep your responses short and to the point. act more like a normal
+            human than a chatbot. I want responses to feel human, with human
+            like mistakes in grammar and spelling, but keep the content spot on
+            and correct
+          </p>
+        </blockquote>
+        <p>
+          But I then realized that I was probably going to lose this prompt in
+          the black hole of chat history.
+        </p>
+        <h2>So, I built AI Cues</h2>
+        <p>
+          This is just a simple wallet to keep track of a prompt you might be
+          fond of, and to open it directly inside your favorite AI tool
+          (ChatGPT, Claude, Meta AI, and others).
+        </p>
+        <h2>How it Works</h2>
+        <figure class="cue-landing-flow">
+          <svg
+            viewBox="0 0 629 60"
+            role="img"
+            aria-labelledby="cue-flow-title"
+          >
+            <title id="cue-flow-title">
+              Save a prompt, pick an AI, launch, and the chat opens prefilled
+            </title>
+            <defs>
+              <marker
+                id="cue-flow-arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+            </defs>
+            <g class="cue-flow-edges">
+              <path d="M143.3 29.8 H175.3" marker-end="url(#cue-flow-arrow)" />
+              <path d="M286.6 29.8 H318.6" marker-end="url(#cue-flow-arrow)" />
+              <path d="M414.8 29.8 H446.8" marker-end="url(#cue-flow-arrow)" />
+            </g>
+            <g class="cue-flow-nodes">
+              <g transform="translate(75.6 29.8)">
+                <rect x="-67.6" y="-21.8" width="135.3" height="43.5" rx="2" />
+                <text text-anchor="middle" dominant-baseline="middle">
+                  Save a prompt
+                </text>
+              </g>
+              <g transform="translate(232.9 29.8)">
+                <rect x="-53.7" y="-21.8" width="107.4" height="43.5" rx="2" />
+                <text text-anchor="middle" dominant-baseline="middle">
+                  Pick an AI
+                </text>
+              </g>
+              <g transform="translate(368.7 29.8)">
+                <rect x="-46.1" y="-21.8" width="92.2" height="43.5" rx="2" />
+                <text text-anchor="middle" dominant-baseline="middle">
+                  Launch
+                </text>
+              </g>
+              <g transform="translate(535.9 29.8)">
+                <rect x="-85.1" y="-21.8" width="170.1" height="43.5" rx="2" />
+                <text text-anchor="middle" dominant-baseline="middle">
+                  Chat opens prefilled
+                </text>
+              </g>
+            </g>
+          </svg>
+        </figure>
+        <ol>
+          <li>Sign in (or continue as a guest on this device).</li>
+          <li>
+            Click <strong>New prompt</strong>, paste the cue you like, and save
+            it.
+          </li>
+          <li>
+            Set your <strong>Primary</strong> AI in the toolbar — or use the row
+            menu to pick a different one for a single launch.
+          </li>
+          <li>
+            Click a prompt in the list to open that AI with your text already
+            filled in.
+          </li>
+          <li>Edit or delete prompts anytime from the row actions.</li>
+        </ol>
+        <p>
+          That is it: store the prompt once, launch it into whichever chat you
+          need, without digging through old threads.
+        </p>
+      </article>
+      <aside class="cue-landing-cta" aria-label="Get started">
+        <div class="cue-landing-cta-inner">
+          <p class="cue-landing-brand">AI Cues</p>
+          <p class="cue-landing-lede">
+            Save prompts you like and open them in your favorite AI tools.
+          </p>
+          <a class="cue-landing-cta-btn" href="/app">Get started</a>
+        </div>
+      </aside>
+    </div>
   </body>
 </html>
