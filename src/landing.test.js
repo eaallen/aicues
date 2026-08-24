@@ -20,6 +20,14 @@ describe("static landing page", () => {
     expect(html).not.toContain("landing-entry.js")
   })
 
+  it("includes Google Analytics with the Firebase measurement ID", () => {
+    const config = readFileSync(join(root, "src/firebase/config.js"), "utf8")
+    expect(config).toContain('GA_MEASUREMENT_ID = "G-M0QG4SCCTN"')
+    expect(config).toContain("measurementId: GA_MEASUREMENT_ID")
+    expect(html).toContain("https://www.googletagmanager.com/gtag/js?id=G-M0QG4SCCTN")
+    expect(html).toContain('gtag("config", "G-M0QG4SCCTN")')
+  })
+
   it("includes SEO metadata and SoftwareApplication JSON-LD", () => {
     expect(html).toContain('rel="canonical"')
     expect(html).toContain("https://aicues.web.app/")

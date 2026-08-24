@@ -2,6 +2,9 @@ import { initializeApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 
+/** Google Analytics 4 measurement ID (Firebase Analytics / gtag). */
+export const GA_MEASUREMENT_ID = "G-M0QG4SCCTN"
+
 export const firebaseConfig = {
   apiKey: "AIzaSyDuIRR76xhNiz5ttcu8DtIVWAuCN04mDB0",
   authDomain: "fire-rat.firebaseapp.com",
@@ -9,7 +12,7 @@ export const firebaseConfig = {
   storageBucket: "fire-rat.firebasestorage.app",
   messagingSenderId: "55755258244",
   appId: "1:55755258244:web:d99ce81f910af6b27305d1",
-  measurementId: "G-M0QG4SCCTN",
+  measurementId: GA_MEASUREMENT_ID,
 }
 
 /** @type {import("firebase/app").FirebaseApp | null} */
