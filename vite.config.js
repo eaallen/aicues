@@ -2,6 +2,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vite"
 import tailwindcss from "@tailwindcss/vite"
+import { isWalletSpaPath } from "./src/ui/routes.js"
 
 const root = dirname(fileURLToPath(import.meta.url))
 
@@ -14,7 +15,7 @@ function rewriteAppPath(req) {
   const queryIndex = url.indexOf("?")
   const path = queryIndex === -1 ? url : url.slice(0, queryIndex)
   const query = queryIndex === -1 ? "" : url.slice(queryIndex)
-  if (path === "/app" || path === "/app/" || path.startsWith("/app/")) {
+  if (isWalletSpaPath(path)) {
     req.url = `/app.html${query}`
   }
 }

@@ -25,9 +25,26 @@ service cloud.firestore {
     //   - body: string (required) — 0..100000 characters
     //   - createdAt: integer millis (required, immutable)
     //   - updatedAt: integer millis (required) — >= createdAt, not decreased
+    //   - publicTag: string (optional) — 2..32, matches public tag rules; when
+    //     present, publicPrompts/{publicTag} must exist
     //
     // Access: signed-in Google/email owners only. Anonymous auth is denied.
     // No PII is stored in prompt documents.
+    //
+    // Collection: publicPrompts/{tag}
+    // Document ID: share tag (same value as the tag field)
+    // Fields:
+    //   - tag: string (required, immutable) — must equal document ID
+    //   - promptId: string (required, immutable) — owner's private prompt id
+    //   - ownerUid: string (required, immutable) — must equal auth.uid
+    //   - title: string (required) — 1..80 characters
+    //   - body: string (required) — 0..100000 characters
+    //   - createdAt: integer millis (required, immutable)
+    //   - updatedAt: integer millis (required) — >= createdAt, not decreased
+    //
+    // Access: unauthenticated read (public wallet / share links).
+    // Writes: signed-in Google/email owner of the matching private prompt.
+    // Anonymous auth is denied. No PII is stored.
     //
     // ===============================================================
 
@@ -60,12 +77,38 @@ service cloud.firestore {
       allow read: if isAccountOwner(uid);
       allow create: if isAccountOwner(uid) &&
         isValidCuePrompt(request.resource.data) &&
-        request.resource.data.createdAt == request.resource.data.updatedAt;
+        request.resource.data.createdAt == request.resource.data.updatedAt &&
+        publicTagExistsIfPresent(request.resource.data);
       allow update: if isAccountOwner(uid) &&
         isValidCuePrompt(request.resource.data) &&
         request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.updatedAt >= resource.data.updatedAt;
+        request.resource.data.updatedAt >= resource.data.updatedAt &&
+        publicTagExistsIfPresent(request.resource.data);
       allow delete: if isAccountOwner(uid);
+    }
+
+    match /publicPrompts/{tag} {
+      allow read: if true;
+      allow create: if isAccountUser() &&
+        isValidPublicPrompt(request.resource.data) &&
+        isValidPublicTag(tag) &&
+        !isReservedPublicTag(tag) &&
+        request.resource.data.tag == tag &&
+        request.resource.data.ownerUid == request.auth.uid &&
+        ownedPromptExists(request.resource.data.promptId);
+      allow update: if isAccountUser() &&
+        resource.data.ownerUid == request.auth.uid &&
+        isValidPublicPrompt(request.resource.data) &&
+        isValidPublicTag(tag) &&
+        !isReservedPublicTag(tag) &&
+        request.resource.data.tag == tag &&
+        request.resource.data.tag == resource.data.tag &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.promptId == resource.data.promptId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt >= resource.data.updatedAt;
+      allow delete: if isAccountUser() &&
+        resource.data.ownerUid == request.auth.uid;
     }
 
     // ===============================================================
@@ -155,19 +198,98 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isValidMillis(value) {
+      return value is number &&
+        value == int(value) &&
+        value > 0;
+    }
+
     function isValidCuePrompt(data) {
-      return hasOnlyAllowedFields(['title', 'body', 'createdAt', 'updatedAt']) &&
+      return hasOnlyAllowedFields([
+          'title',
+          'body',
+          'createdAt',
+          'updatedAt',
+          'publicTag'
+        ]) &&
         hasRequiredFields(['title', 'body', 'createdAt', 'updatedAt']) &&
         data.title is string &&
         data.title.size() > 0 &&
         data.title.size() <= 80 &&
         data.body is string &&
         data.body.size() <= 100000 &&
-        data.createdAt is number &&
-        data.createdAt == int(data.createdAt) &&
-        data.createdAt > 0 &&
-        data.updatedAt is number &&
-        data.updatedAt == int(data.updatedAt) &&
+        isValidMillis(data.createdAt) &&
+        isValidMillis(data.updatedAt) &&
+        data.updatedAt >= data.createdAt &&
+        (!('publicTag' in data) || isValidPublicTag(data.publicTag));
+    }
+
+    function publicTagExistsIfPresent(data) {
+      return !('publicTag' in data) ||
+        exists(/databases/$(database)/documents/publicPrompts/$(data.publicTag));
+    }
+
+    function isValidPublicTag(tag) {
+      return tag is string &&
+        tag.size() >= 2 &&
+        tag.size() <= 32 &&
+        tag.matches('^[a-z][a-z0-9]*(-[a-z0-9]+)*$');
+    }
+
+    function isReservedPublicTag(tag) {
+      return tag in [
+        'about',
+        'api',
+        'app',
+        'assets',
+        'auth',
+        'login',
+        'static',
+        'w',
+        'wallet',
+        'www'
+      ];
+    }
+
+    function ownedPromptExists(promptId) {
+      return promptId is string &&
+        promptId.size() > 0 &&
+        exists(/databases/$(database)/documents/cueUsers/$(request.auth.uid)/prompts/$(promptId));
+    }
+
+    function isValidPublicPrompt(data) {
+      return hasOnlyAllowedFields([
+          'tag',
+          'promptId',
+          'ownerUid',
+          'title',
+          'body',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        hasRequiredFields([
+          'tag',
+          'promptId',
+          'ownerUid',
+          'title',
+          'body',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidPublicTag(data.tag) &&
+        !isReservedPublicTag(data.tag) &&
+        data.promptId is string &&
+        data.promptId.size() > 0 &&
+        data.promptId.size() <= 64 &&
+        data.ownerUid is string &&
+        data.ownerUid == request.auth.uid &&
+        data.title is string &&
+        data.title.size() > 0 &&
+        data.title.size() <= 80 &&
+        data.body is string &&
+        data.body.size() <= 100000 &&
+        isValidMillis(data.createdAt) &&
+        isValidMillis(data.updatedAt) &&
         data.updatedAt >= data.createdAt;
     }
   }

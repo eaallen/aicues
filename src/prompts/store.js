@@ -43,7 +43,7 @@ export function createPromptStore(storage = globalThis.localStorage, key = PROMP
   /**
    * Updates an existing prompt; returns null when the id is unknown.
    * @param {string} id
-   * @param {{ title?: string, body?: string }} [patch]
+   * @param {{ title?: string, body?: string, publicTag?: string | null }} [patch]
    */
   function update(id, patch = {}) {
     const prompts = readAll(storage, key)

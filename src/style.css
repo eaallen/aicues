@@ -142,6 +142,25 @@ textarea {
   color: var(--color-muted);
 }
 
+.cue-session-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.cue-text-link {
+  color: var(--color-muted);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cue-text-link:hover {
+  color: var(--color-base-content);
+  text-decoration: underline;
+}
+
 .cue-toolbar {
   display: flex;
   align-items: center;
@@ -599,4 +618,85 @@ textarea {
 .cue-btn-ghost:hover {
   background: var(--color-neutral);
   color: var(--color-base-content);
+}
+
+.cue-share-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.016em;
+}
+
+.cue-share-copy {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.cue-share-url {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.cue-share .cue-composer-actions {
+  flex-wrap: wrap;
+}
+
+.cue-public-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-base-300);
+}
+
+.cue-public-title {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.016em;
+}
+
+.cue-public-body {
+  margin: 0;
+  max-height: 16rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 4px;
+  border: 1px solid var(--color-base-300);
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.45;
+  padding: 8px 10px;
+}
+
+.cue-public-badge {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--color-muted);
+  letter-spacing: -0.01em;
+}
+
+.cue-prompt-row.is-selected {
+  background: var(--color-hover);
 }

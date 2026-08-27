@@ -102,4 +102,32 @@ describe("firestore prompt field mapping", () => {
       updatedAt: 2,
     })
   })
+
+  it("round-trips an optional publicTag", () => {
+    expect(
+      toFirestorePrompt({
+        id: "abc",
+        title: "T",
+        body: "B",
+        createdAt: 1,
+        updatedAt: 2,
+        publicTag: "voice",
+      }),
+    ).toEqual({
+      title: "T",
+      body: "B",
+      createdAt: 1,
+      updatedAt: 2,
+      publicTag: "voice",
+    })
+    expect(
+      fromFirestorePrompt("abc", {
+        title: "T",
+        body: "B",
+        createdAt: 1,
+        updatedAt: 2,
+        publicTag: "voice",
+      }).publicTag,
+    ).toBe("voice")
+  })
 })

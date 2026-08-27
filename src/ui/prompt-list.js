@@ -1,19 +1,20 @@
 import van from "vanjs-core"
 import { listProviders } from "../providers/urls.js"
-import { DeleteIcon, EditIcon, PlusIcon } from "./icons.js"
+import { DeleteIcon, EditIcon, PlusIcon, ShareIcon } from "./icons.js"
 import { LaunchProviderMenu, PrimaryProviderSelect } from "./provider-picker.js"
 
-const { button, div, li, p, span, ul } = van.tags
+const { a, button, div, li, p, span, ul } = van.tags
 
 /**
  * Centered prompt library: list, create, and row actions.
  * @param {{
  *   state: {
- *     prompts: { val: Array<{ id: string, title: string, body?: string }> },
+ *     prompts: { val: Array<{ id: string, title: string, body?: string, publicTag?: string }> },
  *     providerId: { val: string },
  *     startNew: () => void,
  *     select: (id: string, providerId?: string) => void,
  *     startEdit: (id: string) => void,
+ *     startShare?: (id: string) => void,
  *     remove: (id: string) => void,
  *     setProvider: (id: string) => void,
  *   },
@@ -25,22 +26,31 @@ const { button, div, li, p, span, ul } = van.tags
  * }} props
  */
 export function PromptBoard({ state, session }) {
+  const canShare = session?.kind === "account" && typeof state.startShare === "function"
+
   return div(
     { class: "cue-library" },
-    session
-      ? div(
-          { class: "cue-session" },
-          span({ class: "cue-session-label" }, session.label),
-          button(
-            {
-              type: "button",
-              class: "btn btn-sm btn-ghost cue-btn-ghost",
-              onclick: () => session.onSignOut?.(),
-            },
-            "Sign out",
-          ),
-        )
-      : null,
+    div(
+      { class: "cue-session" },
+      span(
+        { class: "cue-session-label" },
+        session?.label ?? "AI Cues",
+      ),
+      div(
+        { class: "cue-session-actions" },
+        a({ href: "/w", class: "cue-text-link" }, "Public wallet"),
+        session
+          ? button(
+              {
+                type: "button",
+                class: "btn btn-sm btn-ghost cue-btn-ghost",
+                onclick: () => session.onSignOut?.(),
+              },
+              "Sign out",
+            )
+          : null,
+      ),
+    ),
     session?.kind === "anonymous"
       ? p(
           { class: "cue-guest-warning", role: "status" },
@@ -69,8 +79,10 @@ export function PromptBoard({ state, session }) {
       PromptList({
         prompts: state.prompts.val,
         primaryId: state.providerId.val,
+        canShare,
         onSelect: (id, providerId) => state.select(id, providerId),
         onEdit: (id) => state.startEdit(id),
+        onShare: canShare ? (id) => state.startShare?.(id) : undefined,
         onDelete: (id) => state.remove(id),
       }),
   )
@@ -95,14 +107,24 @@ export function promptSnippet(body, max = 88) {
 /**
  * Rebuilds the saved-prompt list from current state.
  * @param {{
- *   prompts: Array<{ id: string, title: string, body?: string }>,
+ *   prompts: Array<{ id: string, title: string, body?: string, publicTag?: string }>,
  *   primaryId: string,
+ *   canShare?: boolean,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
+ *   onShare?: (id: string) => void,
  *   onDelete: (id: string) => void,
  * }} props
  */
-function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
+function PromptList({
+  prompts,
+  primaryId,
+  canShare,
+  onSelect,
+  onEdit,
+  onShare,
+  onDelete,
+}) {
   if (prompts.length === 0) {
     return p({ class: "cue-empty" }, "No prompts yet.")
   }
@@ -116,8 +138,10 @@ function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
       PromptRow({
         prompt,
         primaryId,
+        canShare,
         onSelect,
         onEdit,
+        onShare,
         onDelete,
       }),
     ),
@@ -127,14 +151,24 @@ function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
 /**
  * One library row: open the prompt, with launch/Edit/Delete beside it.
  * @param {{
- *   prompt: { id: string, title: string, body?: string },
+ *   prompt: { id: string, title: string, body?: string, publicTag?: string },
  *   primaryId: string,
+ *   canShare?: boolean,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
+ *   onShare?: (id: string) => void,
  *   onDelete: (id: string) => void,
  * }} props
  */
-function PromptRow({ prompt, primaryId, onSelect, onEdit, onDelete }) {
+function PromptRow({
+  prompt,
+  primaryId,
+  canShare,
+  onSelect,
+  onEdit,
+  onShare,
+  onDelete,
+}) {
   const snippet = promptSnippet(prompt.body)
 
   return li(
@@ -146,6 +180,9 @@ function PromptRow({ prompt, primaryId, onSelect, onEdit, onDelete }) {
         onclick: () => onSelect(prompt.id),
       },
       span({ class: "cue-prompt-title" }, prompt.title),
+      prompt.publicTag
+        ? span({ class: "cue-public-badge" }, `/${prompt.publicTag}`)
+        : null,
       snippet
         ? span({ class: "cue-prompt-snippet" }, snippet)
         : null,
@@ -175,6 +212,16 @@ function PromptRow({ prompt, primaryId, onSelect, onEdit, onDelete }) {
           onEdit(prompt.id)
         },
       }),
+      canShare
+        ? RowAction({
+            label: "Share",
+            icon: ShareIcon(),
+            onClick: (event) => {
+              event.stopPropagation()
+              onShare?.(prompt.id)
+            },
+          })
+        : null,
       RowAction({
         label: "Delete",
         icon: DeleteIcon(),

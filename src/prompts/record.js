@@ -93,9 +93,9 @@ export function buildPrompt(input = {}, now = Date.now()) {
 }
 
 /**
- * Applies a title/body patch to an existing prompt.
+ * Applies a title/body/publicTag patch to an existing prompt.
  * @param {object} current
- * @param {{ title?: string, body?: string }} [patch]
+ * @param {{ title?: string, body?: string, publicTag?: string | null }} [patch]
  * @param {number} [now]
  */
 export function applyPromptPatch(current, patch = {}, now = Date.now()) {
@@ -105,6 +105,14 @@ export function applyPromptPatch(current, patch = {}, now = Date.now()) {
   }
   if (patch.body !== undefined) {
     next.body = trimField(patch.body)
+  }
+  if (patch.publicTag !== undefined) {
+    const tag = trimField(patch.publicTag)
+    if (tag) {
+      next.publicTag = tag
+    } else {
+      delete next.publicTag
+    }
   }
   next.title = normalizeTitle(next.title, next.body)
   next.updatedAt = now
@@ -118,12 +126,17 @@ export function applyPromptPatch(current, patch = {}, now = Date.now()) {
  * @param {object} prompt
  */
 export function toFirestorePrompt(prompt) {
-  return {
+  const data = {
     title: String(prompt.title ?? ""),
     body: String(prompt.body ?? ""),
     createdAt: Number(prompt.createdAt) || 0,
     updatedAt: Number(prompt.updatedAt) || 0,
   }
+  const tag = trimField(prompt.publicTag)
+  if (tag) {
+    data.publicTag = tag
+  }
+  return data
 }
 
 /**
@@ -132,11 +145,15 @@ export function toFirestorePrompt(prompt) {
  * @param {object} [data]
  */
 export function fromFirestorePrompt(id, data = {}) {
-  return {
+  const prompt = {
     id,
     title: typeof data.title === "string" ? data.title : "",
     body: typeof data.body === "string" ? data.body : "",
     createdAt: Number(data.createdAt) || 0,
     updatedAt: Number(data.updatedAt) || 0,
   }
+  if (typeof data.publicTag === "string" && data.publicTag.trim()) {
+    prompt.publicTag = data.publicTag.trim()
+  }
+  return prompt
 }

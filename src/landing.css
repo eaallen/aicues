@@ -225,6 +225,22 @@ body {
   background: var(--color-btn-solid-hover);
 }
 
+.cue-landing-secondary {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+}
+
+.cue-landing-secondary a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.cue-landing-secondary a:hover {
+  color: var(--color-base-content);
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .cue-landing {
     flex-direction: column;
@@ -253,6 +269,10 @@ body {
   .cue-landing-hero .cue-landing-cta-btn {
     width: fit-content;
     margin-top: 4px;
+  }
+
+  .cue-landing-hero .cue-landing-secondary {
+    text-align: left;
   }
 
   .cue-landing-about {

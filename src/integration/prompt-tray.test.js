@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { createPromptStore } from "../prompts/store.js"
 import { buildAskUrl } from "../providers/urls.js"
 import { createMemoryStorage } from "../test/memory-storage.js"
-import { App, createAppState, paneForMode } from "../ui/app.js"
+import { AuthenticatedApp, App, createAppState, paneForMode } from "../ui/app.js"
 import { sessionUrlForPrompt } from "../ui/session.js"
 
 /**
@@ -214,6 +214,57 @@ describe("prompt tray integration", () => {
     const picker = root.querySelector('select[aria-label="Primary AI provider"]')
     expect(picker instanceof HTMLSelectElement && picker.value).toBe("meta")
     expect(menu.open).toBe(false)
+
+    root.remove()
+  })
+
+  it("signed-in users can publish a prompt from the share pane", async () => {
+    const store = createPromptStore(createMemoryStorage())
+    store.create({ title: "Human", body: "keep it short" })
+    store.publish = async (id, tag) => {
+      store.update(id, { publicTag: tag })
+      return tag
+    }
+    const authApi = {
+      watch: (listener) => {
+        listener({
+          uid: "user-1",
+          isAnonymous: false,
+          email: "user@example.com",
+        })
+        return () => {}
+      },
+      signOut: async () => {},
+    }
+    const root = AuthenticatedApp({
+      authApi,
+      createAccountStore: () => store,
+      storage: createMemoryStorage(),
+      openUrl: () => {},
+    })
+    document.body.append(root)
+
+    const share = await waitFor(() =>
+      root.querySelector('.cue-row-btn[aria-label="Share"]'),
+    )
+    share.click()
+
+    const tagField = await waitFor(() => {
+      const field = root.querySelector('input[name="tag"]')
+      return field instanceof HTMLInputElement ? field : null
+    })
+    typeInto(tagField, "voice")
+    root.querySelector("form.cue-share")?.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true }),
+    )
+
+    await waitFor(() =>
+      [...root.querySelectorAll("button")].find((button) =>
+        button.textContent?.includes("Update link"),
+      ),
+    )
+    expect(root.textContent).toContain("/w/voice")
+    expect(store.list()[0].publicTag).toBe("voice")
 
     root.remove()
   })
