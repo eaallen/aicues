@@ -28,5 +28,6 @@ flowchart LR
 3. Set your **Primary** AI in the toolbar — or use the row menu to pick a different one for a single launch.
 4. Click a prompt in the list to open that AI with your text already filled in.
 5. Edit or delete prompts anytime from the row actions.
+6. Signed-in users can **Share** a prompt with a tag to get a public link like `/w/your-tag`. Anyone can open that link in the public wallet and browse other public prompts.
 
 That is it: store the prompt once, launch it into whichever chat you need, without digging through old threads.

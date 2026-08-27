@@ -86,3 +86,19 @@ export function CheckIcon() {
     }),
   )
 }
+
+/**
+ * Share mark for publishing a prompt to the public wallet.
+ */
+export function ShareIcon() {
+  return CueIcon(
+    path({
+      d: "M6 7.25V2.5M6 2.5 4.25 4.25M6 2.5 7.75 4.25",
+      ...stroke,
+    }),
+    path({
+      d: "M2.5 6.5v3h7v-3",
+      ...stroke,
+    }),
+  )
+}

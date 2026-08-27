@@ -38,6 +38,7 @@ describe("PromptBoard layout", () => {
     expect(toolbar?.contains(session)).toBe(false)
     expect(session?.textContent).toContain("user@example.com")
     expect(session?.textContent).toContain("Sign out")
+    expect(session?.textContent).toContain("Public wallet")
 
     const children = [...(library?.children ?? [])]
     const sessionIndex = children.indexOf(/** @type {Element} */ (session))
@@ -81,5 +82,34 @@ describe("PromptBoard layout", () => {
     expect(children.indexOf(warning)).toBeLessThan(children.indexOf(toolbar))
 
     root.remove()
+  })
+
+  it("shows a share action for signed-in accounts and hides it for guests", () => {
+    const store = memoryStore()
+    store.create({ title: "Pie", body: "I like pie" })
+
+    const account = PromptBoard({
+      state: createAppState(store),
+      session: {
+        kind: "account",
+        label: "user@example.com",
+        onSignOut: vi.fn(),
+      },
+    })
+    document.body.append(account)
+    expect(account.querySelector('.cue-row-btn[aria-label="Share"]')).toBeTruthy()
+    account.remove()
+
+    const guest = PromptBoard({
+      state: createAppState(store),
+      session: {
+        kind: "anonymous",
+        label: "Guest",
+        onSignOut: vi.fn(),
+      },
+    })
+    document.body.append(guest)
+    expect(guest.querySelector('.cue-row-btn[aria-label="Share"]')).toBeNull()
+    guest.remove()
   })
 })

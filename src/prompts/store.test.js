@@ -166,6 +166,16 @@ describe("createPromptStore", () => {
     expect(store.remove(prompt.id)).toBe(false)
   })
 
+  it("stores and clears a publicTag on update", () => {
+    const prompt = store.create({ title: "Human", body: "keep it short" })
+    const published = store.update(prompt.id, { publicTag: "voice" })
+    expect(published?.publicTag).toBe("voice")
+    const renamed = store.update(prompt.id, { title: "Voice" })
+    expect(renamed?.publicTag).toBe("voice")
+    const cleared = store.update(prompt.id, { publicTag: "" })
+    expect(cleared?.publicTag).toBeUndefined()
+  })
+
   it("returns an empty list without throwing when storage JSON is corrupt", () => {
     storage.setItem(PROMPTS_KEY, "{not-json")
 

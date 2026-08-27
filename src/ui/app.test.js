@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 import { GUEST_STORAGE_WARNING } from "../firebase/auth.js"
 import { createPromptStore } from "../prompts/store.js"
 import { createMemoryStorage } from "../test/memory-storage.js"
-import { App, AuthenticatedApp, createAppState, findPrompt, paneForMode } from "./app.js"
+import { App, AuthenticatedApp, Root, createAppState, findPrompt, paneForMode } from "./app.js"
 import { promptSnippet } from "./prompt-list.js"
 import { displayTitle, sessionUrlForPrompt } from "./session.js"
 
@@ -17,6 +17,7 @@ describe("paneForMode", () => {
   it("maps tray modes to the centered view", () => {
     expect(paneForMode("list")).toBe("list")
     expect(paneForMode("compose")).toBe("composer")
+    expect(paneForMode("share")).toBe("share")
   })
 
   it("falls back to the list for an unknown mode", () => {
@@ -224,6 +225,36 @@ describe("createAppState", () => {
     state.cancelCompose()
     expect(state.mode.val).toBe("list")
   })
+
+  it("opens the share pane and publishes through the store", async () => {
+    const store = memoryStore()
+    const created = store.create({ title: "Human", body: "keep it short" })
+    const published = []
+    store.publish = async (id, tag) => {
+      published.push({ id, tag })
+      store.update(id, { publicTag: "human-voice" })
+      return "human-voice"
+    }
+    const state = createAppState(store)
+    state.startShare(created.id)
+    expect(state.mode.val).toBe("share")
+    expect(state.sharingPrompt()?.id).toBe(created.id)
+
+    const result = await state.publish("Human Voice")
+    expect(result).toEqual({ ok: true, tag: "human-voice" })
+    expect(published).toEqual([{ id: created.id, tag: "Human Voice" }])
+    expect(state.prompts.val[0].publicTag).toBe("human-voice")
+  })
+
+  it("refuses to publish when the store has no publish method", async () => {
+    const store = memoryStore()
+    const created = store.create({ title: "Human", body: "keep it short" })
+    const state = createAppState(store)
+    state.startShare(created.id)
+    const result = await state.publish("voice")
+    expect(result.ok).toBe(false)
+    expect(result.error).toMatch(/sign in/i)
+  })
 })
 
 describe("App", () => {
@@ -240,6 +271,7 @@ describe("App", () => {
     expect(root.textContent).toContain("New prompt")
     expect(root.textContent).toContain("Listed")
     expect(root.textContent).toContain("body")
+    expect(root.textContent).toContain("Public wallet")
     expect(root.querySelector(".cue-board")).toBeTruthy()
     expect(root.querySelector(".cue-sidebar")).toBeNull()
     expect(
@@ -340,6 +372,55 @@ describe("AuthenticatedApp", () => {
     expect(root.textContent).toContain("Guest mode stores prompts only on this device")
     expect(root.textContent).toContain("New prompt")
     expect(root.textContent).toContain("Guest")
+    expect(root.querySelector('.cue-row-btn[aria-label="Share"]')).toBeNull()
+    root.remove()
+  })
+
+  it("shows share actions for signed-in accounts", async () => {
+    const store = memoryStore()
+    store.create({ title: "Pie", body: "I like pie" })
+    const authApi = {
+      watch: (listener) => {
+        listener({ uid: "user-1", isAnonymous: false, email: "user@example.com" })
+        return () => {}
+      },
+      signOut: vi.fn(async () => {}),
+    }
+    const root = AuthenticatedApp({
+      authApi,
+      storage: createMemoryStorage(),
+      openUrl: () => {},
+      createAccountStore: () => store,
+    })
+    document.body.append(root)
+    await tick()
+    expect(root.textContent).toContain("user@example.com")
+    expect(root.querySelector('.cue-row-btn[aria-label="Share"]')).toBeTruthy()
+    expect(root.textContent).toContain("Public wallet")
+    root.remove()
+  })
+})
+
+describe("Root", () => {
+  it("renders the public wallet for /w paths", async () => {
+    const publicStore = {
+      async list() {
+        return [{ tag: "voice", title: "Human voice", body: "keep it short" }]
+      },
+    }
+    const root = Root({
+      path: "/w/voice",
+      publicStore,
+      openUrl: () => {},
+      storage: createMemoryStorage(),
+    })
+    document.body.append(root)
+    const deadline = Date.now() + 1000
+    while (Date.now() < deadline && !root.textContent?.includes("Human voice")) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+    expect(root.textContent).toContain("Public wallet")
+    expect(root.textContent).toContain("keep it short")
     root.remove()
   })
 })

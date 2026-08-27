@@ -64,11 +64,11 @@ export function createFirestorePromptStore(backend) {
     return prompt
   }
 
-  /**
-   * Updates a cached prompt and persists it.
-   * @param {string} id
-   * @param {{ title?: string, body?: string }} [patch]
-   */
+/**
+ * Updates a cached prompt and persists it.
+ * @param {string} id
+ * @param {{ title?: string, body?: string, publicTag?: string | null }} [patch]
+ */
   function update(id, patch = {}) {
     const index = cache.findIndex((prompt) => prompt.id === id)
     if (index === -1) {
@@ -113,13 +113,13 @@ export function createFirestorePromptStore(backend) {
 }
 
 /**
- * Firestore-backed prompt store for a signed-in AI Cues account.
+ * Firestore backend for `cueUsers/{uid}/prompts/{promptId}`.
  * @param {import("firebase/firestore").Firestore} db
  * @param {string} uid
  */
-export function createCueFirestoreStore(db, uid) {
+export function createCuePrivateBackend(db, uid) {
   const prompts = collection(db, "cueUsers", uid, "prompts")
-  return createFirestorePromptStore({
+  return {
     async listDocs() {
       const snap = await getDocs(prompts)
       return snap.docs.map((snapshot) =>
@@ -132,5 +132,14 @@ export function createCueFirestoreStore(db, uid) {
     async deleteDoc(id) {
       await deleteDoc(doc(prompts, id))
     },
-  })
+  }
+}
+
+/**
+ * Firestore-backed private prompt store for a signed-in AI Cues account.
+ * @param {import("firebase/firestore").Firestore} db
+ * @param {string} uid
+ */
+export function createCueFirestoreStore(db, uid) {
+  return createFirestorePromptStore(createCuePrivateBackend(db, uid))
 }
