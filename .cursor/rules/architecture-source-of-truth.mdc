@@ -1,0 +1,14 @@
+---
+description: Architecture source of truth for AI Cues public sharing features
+alwaysApply: true
+---
+
+# Architecture source of truth
+
+When designing or implementing features for public sharing, user profiles, or routing:
+
+- Read and follow [docs/architecture.md](../../docs/architecture.md) before making structural decisions.
+- Module specs live in [docs/modules/](../../docs/modules/).
+- Implementation plans live in [.cursor/plans/](../plans/).
+
+Do not contradict the data model, routing table, or module boundaries in `architecture.md` without updating that document first.

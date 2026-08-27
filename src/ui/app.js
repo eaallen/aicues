@@ -1,6 +1,8 @@
 import van from "vanjs-core"
+import { findPrompt } from "../prompts/record.js"
 import { createAuthApi, GUEST_STORAGE_WARNING, sessionFromUser } from "../firebase/auth.js"
 import { getCueAuth, getCueDb } from "../firebase/config.js"
+import { createProfileStore } from "../profile/firestore-store.js"
 import { createCueFirestoreStore } from "../prompts/firestore-store.js"
 import { createPromptStore } from "../prompts/store.js"
 import { openProviderUrl } from "../providers/open-window.js"
@@ -13,21 +15,10 @@ import {
 import { AuthGate } from "./auth-gate.js"
 import { Composer } from "./composer.js"
 import { PromptBoard } from "./prompt-list.js"
+import { ProfilePage } from "./profile-page.js"
 import { launchPrompt } from "./session.js"
 
 const { div, p } = van.tags
-
-/**
- * Finds a prompt by id in a list.
- * @param {Array<{ id: string }>} prompts
- * @param {string | null | undefined} id
- */
-export function findPrompt(prompts, id) {
-  if (!id) {
-    return null
-  }
-  return prompts.find((prompt) => prompt.id === id) ?? null
-}
 
 /**
  * Maps tray mode to the centered view.
@@ -221,7 +212,7 @@ export function LibraryApp({ store, openUrl, storage, session }) {
 }
 
 /**
- * Centered board for list or composer.
+ * Centered board for list, composer, or profile.
  * @param {{
  *   state: ReturnType<typeof createAppState>,
  *   session?: {
@@ -229,12 +220,39 @@ export function LibraryApp({ store, openUrl, storage, session }) {
  *     label: string,
  *     onSignOut?: () => void,
  *   },
+ *   route?: { kind: string },
+ *   profileStore?: ReturnType<typeof createProfileStore>,
+ *   authEmail?: string | null,
+ *   promptStore?: {
+ *     get: (id: string) => object | null,
+ *     update: (id: string, patch?: object) => object | null,
+ *   },
  * }} props
  */
-function LibraryBoard({ state, session }) {
+function LibraryBoard({ state, session, route, profileStore, authEmail, promptStore }) {
   return div(
     { class: "cue-board" },
     () => {
+      if (
+        route?.kind === "app-profile" &&
+        session?.kind === "anonymous"
+      ) {
+        window.location.replace("/app")
+        return p({ class: "cue-empty" }, "Loading…")
+      }
+      if (
+        route?.kind === "app-profile" &&
+        session?.kind === "account" &&
+        profileStore
+      ) {
+        return ProfilePage({
+          profileStore,
+          authEmail,
+          onBack: () => {
+            window.location.assign("/app")
+          },
+        })
+      }
       if (paneForMode(state.mode.val) === "composer") {
         return Composer({
           prompt: state.editingPrompt(),
@@ -244,7 +262,7 @@ function LibraryBoard({ state, session }) {
           onCancel: () => state.cancelCompose(),
         })
       }
-      return PromptBoard({ state, session })
+      return PromptBoard({ state, session, profileStore, promptStore })
     },
   )
 }
@@ -264,6 +282,7 @@ function LibraryBoard({ state, session }) {
  *     load?: () => Promise<void>,
  *   },
  *   warn?: (message: string) => void,
+ *   route?: { kind: string },
  * }} [props]
  */
 export function AuthenticatedApp({
@@ -272,6 +291,7 @@ export function AuthenticatedApp({
   authApi,
   createAccountStore,
   warn = console.warn,
+  route = { kind: "app" },
 } = {}) {
   const api = authApi ?? createAuthApi(getCueAuth())
   const makeAccountStore =
@@ -336,8 +356,19 @@ export function AuthenticatedApp({
         saveProviderId(id, prefStorage)
       },
     })
+    const profileStore =
+      current.session.kind === "account"
+        ? createProfileStore(getCueDb(), current.session.user.uid)
+        : undefined
     return LibraryBoard({
       state,
+      route,
+      profileStore,
+      promptStore: current.store,
+      authEmail:
+        current.session.kind === "account"
+          ? current.session.user.email
+          : null,
       session: {
         kind: current.session.kind,
         label: current.session.label,
@@ -355,11 +386,12 @@ export function AuthenticatedApp({
  *   store?: ReturnType<typeof createPromptStore>,
  *   openUrl?: (url: string) => void,
  *   storage?: Pick<Storage, "getItem" | "setItem">,
+ *   route?: { kind: string },
  * }} [props]
  */
-export function App({ store, openUrl, storage } = {}) {
+export function App({ store, openUrl, storage, route = { kind: "app" } } = {}) {
   if (store) {
     return LibraryApp({ store, openUrl, storage })
   }
-  return AuthenticatedApp({ openUrl, storage })
+  return AuthenticatedApp({ openUrl, storage, route })
 }

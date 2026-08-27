@@ -25,9 +25,26 @@ service cloud.firestore {
     //   - body: string (required) — 0..100000 characters
     //   - createdAt: integer millis (required, immutable)
     //   - updatedAt: integer millis (required) — >= createdAt, not decreased
+    //   - isPublic: boolean (optional) — when true, anyone may read the prompt
     //
-    // Access: signed-in Google/email owners only. Anonymous auth is denied.
+    // Access: signed-in Google/email owners read/write; public read when isPublic == true.
     // No PII is stored in prompt documents.
+    //
+    // Document: cueUsers/{uid}
+    // Fields:
+    //   - tag: string (required) — 3..32 chars, lowercase slug
+    //   - updatedAt: integer millis (required)
+    //
+    // Access: owner read/write; public read when tag is present (public wallet).
+    // No email or other PII on this document.
+    //
+    // Collection: userTags/{tag}
+    // Document ID: normalized tag
+    // Fields:
+    //   - uid: string (required) — owner uid
+    //
+    // Access: authenticated read; create when absent and uid matches auth;
+    // delete by owner only; no update.
     //
     // ===============================================================
 
@@ -56,8 +73,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /cueUsers/{uid} {
+      allow read: if isAccountOwner(uid) ||
+        (resource.data.keys().hasAny(['tag']) && resource.data.tag is string);
+      allow create: if isAccountOwner(uid) &&
+        isValidCueProfile(request.resource.data);
+      allow update: if isAccountOwner(uid) &&
+        isValidCueProfile(request.resource.data);
+      allow delete: if isAccountOwner(uid);
+    }
+
+    match /userTags/{tag} {
+      allow read: if isAccountUser();
+      allow create: if isAccountUser() &&
+        !exists(/databases/$(database)/documents/userTags/$(tag)) &&
+        hasOnlyAllowedFields(['uid']) &&
+        hasRequiredFields(['uid']) &&
+        request.resource.data.uid == request.auth.uid;
+      allow delete: if isAccountUser() &&
+        resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
     match /cueUsers/{uid}/prompts/{promptId} {
-      allow read: if isAccountOwner(uid);
+      allow read: if isAccountOwner(uid) ||
+        resource.data.isPublic == true;
       allow create: if isAccountOwner(uid) &&
         isValidCuePrompt(request.resource.data) &&
         request.resource.data.createdAt == request.resource.data.updatedAt;
@@ -156,7 +196,7 @@ service cloud.firestore {
     }
 
     function isValidCuePrompt(data) {
-      return hasOnlyAllowedFields(['title', 'body', 'createdAt', 'updatedAt']) &&
+      return hasOnlyAllowedFields(['title', 'body', 'createdAt', 'updatedAt', 'isPublic']) &&
         hasRequiredFields(['title', 'body', 'createdAt', 'updatedAt']) &&
         data.title is string &&
         data.title.size() > 0 &&
@@ -168,7 +208,24 @@ service cloud.firestore {
         data.createdAt > 0 &&
         data.updatedAt is number &&
         data.updatedAt == int(data.updatedAt) &&
-        data.updatedAt >= data.createdAt;
+        data.updatedAt >= data.createdAt &&
+        (!('isPublic' in data) || data.isPublic is bool);
+    }
+
+    function isValidCueProfile(data) {
+      return hasOnlyAllowedFields(['tag', 'updatedAt']) &&
+        hasRequiredFields(['tag', 'updatedAt']) &&
+        isValidUserTag(data.tag) &&
+        data.updatedAt is number &&
+        data.updatedAt == int(data.updatedAt) &&
+        data.updatedAt > 0;
+    }
+
+    function isValidUserTag(tag) {
+      return tag is string &&
+        tag.size() >= 3 &&
+        tag.size() <= 32 &&
+        tag.matches('^[a-z0-9]([a-z0-9-]*[a-z0-9])?$');
     }
   }
 }

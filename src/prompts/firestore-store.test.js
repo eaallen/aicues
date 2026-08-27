@@ -66,6 +66,22 @@ describe("createFirestorePromptStore", () => {
     expect(store.remove("missing")).toBe(false)
     await store.flush()
   })
+
+  it("persists isPublic through update", async () => {
+    const { docs, backend } = memoryBackend()
+    const store = createFirestorePromptStore(backend)
+    const created = store.create({ title: "Share me", body: "body" })
+
+    const published = store.update(created.id, { isPublic: true })
+    expect(published?.isPublic).toBe(true)
+    await store.flush()
+    expect(docs.get(created.id)?.isPublic).toBe(true)
+
+    const unpublished = store.update(created.id, { isPublic: false })
+    expect(unpublished?.isPublic).toBe(false)
+    await store.flush()
+    expect(docs.get(created.id)?.isPublic).toBeUndefined()
+  })
 })
 
 describe("firestore prompt field mapping", () => {
@@ -100,6 +116,7 @@ describe("firestore prompt field mapping", () => {
       body: "B",
       createdAt: 1,
       updatedAt: 2,
+      isPublic: false,
     })
   })
 })

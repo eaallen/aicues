@@ -5,7 +5,28 @@ import "@fontsource/ibm-plex-mono/500.css"
 import "./style.css"
 import van from "vanjs-core"
 import { initCueAnalytics } from "./firebase/analytics.js"
+import { getCueDb } from "./firebase/config.js"
+import { applyRouteMeta, parseRoute } from "./router.js"
+import { createPublicPromptStore } from "./sharing/public-store.js"
 import { App } from "./ui/app.js"
+import { PublicWalletApp } from "./ui/public-wallet.js"
+
+const route = parseRoute(window.location.pathname)
+applyRouteMeta(route)
+
+/**
+ * Root shell: public wallet or authenticated app by path.
+ */
+function Root() {
+  if (route.kind === "public-wallet") {
+    return PublicWalletApp({
+      tag: route.tag,
+      highlightPromptId: route.promptId,
+      publicStore: createPublicPromptStore(getCueDb()),
+    })
+  }
+  return App({ route })
+}
 
 void initCueAnalytics()
-van.add(document.getElementById("app"), App())
+van.add(document.getElementById("app"), Root())

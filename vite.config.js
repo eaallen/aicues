@@ -14,7 +14,12 @@ function rewriteAppPath(req) {
   const queryIndex = url.indexOf("?")
   const path = queryIndex === -1 ? url : url.slice(0, queryIndex)
   const query = queryIndex === -1 ? "" : url.slice(queryIndex)
-  if (path === "/app" || path === "/app/" || path.startsWith("/app/")) {
+  if (
+    path === "/app" ||
+    path === "/app/" ||
+    path.startsWith("/app/") ||
+    path.startsWith("/w/")
+  ) {
     req.url = `/app.html${query}`
   }
 }

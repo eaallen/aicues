@@ -86,3 +86,28 @@ export function CheckIcon() {
     }),
   )
 }
+
+/**
+ * Globe mark for share / public visibility controls.
+ * @param {{ public?: boolean }} [props]
+ */
+export function GlobeIcon(props = {}) {
+  return svg(
+    {
+      class: props.public ? "cue-icon cue-globe-icon cue-globe-public" : "cue-icon cue-globe-icon",
+      width: "12",
+      height: "12",
+      viewBox: "0 0 12 12",
+      fill: "none",
+      "aria-hidden": "true",
+      focusable: "false",
+    },
+    path({
+      d: "M6 10.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z",
+      ...stroke,
+    }),
+    path({ d: "M2.25 6h7.5", ...stroke }),
+    path({ d: "M6 1.5c1.2 1.35 1.875 3.075 1.875 4.5S7.2 8.85 6 10.2", ...stroke }),
+    path({ d: "M6 1.5C4.8 2.85 4.125 4.575 4.125 6S4.8 9.15 6 10.2", ...stroke }),
+  )
+}

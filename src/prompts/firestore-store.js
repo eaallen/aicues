@@ -9,6 +9,7 @@ import {
   applyPromptPatch,
   buildPrompt,
   clonePrompt,
+  findPrompt,
   fromFirestorePrompt,
   isPromptRecord,
   sortByUpdatedAtDesc,
@@ -60,23 +61,27 @@ export function createFirestorePromptStore(backend) {
   function create(input = {}) {
     const prompt = buildPrompt(input)
     cache = [...cache, clonePrompt(prompt)]
-    enqueue(() => backend.writeDoc(clonePrompt(prompt)))
+    enqueue(() =>
+      backend.writeDoc({ id: prompt.id, ...toFirestorePrompt(prompt) }),
+    )
     return prompt
   }
 
   /**
    * Updates a cached prompt and persists it.
    * @param {string} id
-   * @param {{ title?: string, body?: string }} [patch]
+   * @param {{ title?: string, body?: string, isPublic?: boolean }} [patch]
    */
   function update(id, patch = {}) {
     const index = cache.findIndex((prompt) => prompt.id === id)
     if (index === -1) {
       return null
     }
-    const next = applyPromptPatch(cache[index], patch)
+    let next = applyPromptPatch(cache[index], patch)
     cache = cache.map((prompt, i) => (i === index ? next : clonePrompt(prompt)))
-    enqueue(() => backend.writeDoc(clonePrompt(next)))
+    enqueue(() =>
+      backend.writeDoc({ id: next.id, ...toFirestorePrompt(next) }),
+    )
     return clonePrompt(next)
   }
 

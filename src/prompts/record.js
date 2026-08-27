@@ -95,7 +95,7 @@ export function buildPrompt(input = {}, now = Date.now()) {
 /**
  * Applies a title/body patch to an existing prompt.
  * @param {object} current
- * @param {{ title?: string, body?: string }} [patch]
+ * @param {{ title?: string, body?: string, isPublic?: boolean }} [patch]
  * @param {number} [now]
  */
 export function applyPromptPatch(current, patch = {}, now = Date.now()) {
@@ -106,6 +106,9 @@ export function applyPromptPatch(current, patch = {}, now = Date.now()) {
   if (patch.body !== undefined) {
     next.body = trimField(patch.body)
   }
+  if (patch.isPublic !== undefined) {
+    next.isPublic = Boolean(patch.isPublic)
+  }
   next.title = normalizeTitle(next.title, next.body)
   next.updatedAt = now
   next.id = current.id
@@ -114,16 +117,50 @@ export function applyPromptPatch(current, patch = {}, now = Date.now()) {
 }
 
 /**
+ * Finds a prompt by id in a list.
+ * @param {Array<{ id: string }>} prompts
+ * @param {string | null | undefined} id
+ */
+export function findPrompt(prompts, id) {
+  if (!id) {
+    return null
+  }
+  return prompts.find((prompt) => prompt.id === id) ?? null
+}
+
+/**
+ * Whether a prompt is public (missing isPublic treated as false).
+ * @param {{ isPublic?: boolean }} prompt
+ */
+export function isPublicPrompt(prompt) {
+  return prompt.isPublic === true
+}
+
+/**
+ * Patch helper for visibility only.
+ * @param {object} current
+ * @param {boolean} isPublic
+ * @param {number} [now]
+ */
+export function applyVisibilityPatch(current, isPublic, now = Date.now()) {
+  return applyPromptPatch(current, { isPublic }, now)
+}
+
+/**
  * Firestore fields for a prompt; id lives in the document path.
  * @param {object} prompt
  */
 export function toFirestorePrompt(prompt) {
-  return {
+  const doc = {
     title: String(prompt.title ?? ""),
     body: String(prompt.body ?? ""),
     createdAt: Number(prompt.createdAt) || 0,
     updatedAt: Number(prompt.updatedAt) || 0,
   }
+  if (isPublicPrompt(prompt)) {
+    doc.isPublic = true
+  }
+  return doc
 }
 
 /**
@@ -138,5 +175,6 @@ export function fromFirestorePrompt(id, data = {}) {
     body: typeof data.body === "string" ? data.body : "",
     createdAt: Number(data.createdAt) || 0,
     updatedAt: Number(data.updatedAt) || 0,
+    isPublic: data.isPublic === true,
   }
 }

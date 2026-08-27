@@ -1,4 +1,10 @@
 import van from "vanjs-core"
+import { isPublicPrompt } from "../prompts/record.js"
+import { makePromptPrivate, sharePrompt } from "../sharing/share-prompt.js"
+import {
+  PublicPromptIndicator,
+  SharePromptButton,
+} from "../sharing/share-controls.js"
 import { listProviders } from "../providers/urls.js"
 import { DeleteIcon, EditIcon, PlusIcon } from "./icons.js"
 import { LaunchProviderMenu, PrimaryProviderSelect } from "./provider-picker.js"
@@ -22,14 +28,35 @@ const { button, div, li, p, span, ul } = van.tags
  *     label: string,
  *     onSignOut?: () => void,
  *   },
+ *   profileStore?: {
+ *     get: () => Promise<{ tag: string } | null>,
+ *     setTag: (tag: string) => Promise<{ tag: string }>,
+ *   },
+ *   promptStore?: {
+ *     get: (id: string) => object | null,
+ *     update: (id: string, patch?: object) => object | null,
+ *   },
  * }} props
  */
-export function PromptBoard({ state, session }) {
+export function PromptBoard({ state, session, profileStore, promptStore }) {
+  const isAccount = session?.kind === "account"
   return div(
     { class: "cue-library" },
     session
       ? div(
           { class: "cue-session" },
+          isAccount
+            ? button(
+                {
+                  type: "button",
+                  class: "btn btn-sm btn-ghost cue-btn-ghost",
+                  onclick: () => {
+                    window.location.assign("/app/profile")
+                  },
+                },
+                "Profile",
+              )
+            : null,
           span({ class: "cue-session-label" }, session.label),
           button(
             {
@@ -69,6 +96,10 @@ export function PromptBoard({ state, session }) {
       PromptList({
         prompts: state.prompts.val,
         primaryId: state.providerId.val,
+        isAccount,
+        profileStore,
+        promptStore,
+        onRefresh: () => state.refresh(),
         onSelect: (id, providerId) => state.select(id, providerId),
         onEdit: (id) => state.startEdit(id),
         onDelete: (id) => state.remove(id),
@@ -95,14 +126,34 @@ export function promptSnippet(body, max = 88) {
 /**
  * Rebuilds the saved-prompt list from current state.
  * @param {{
- *   prompts: Array<{ id: string, title: string, body?: string }>,
+ *   prompts: Array<{ id: string, title: string, body?: string, isPublic?: boolean }>,
  *   primaryId: string,
+ *   isAccount: boolean,
+ *   profileStore?: {
+ *     get: () => Promise<{ tag: string } | null>,
+ *     setTag: (tag: string) => Promise<{ tag: string }>,
+ *   },
+ *   promptStore?: {
+ *     get: (id: string) => object | null,
+ *     update: (id: string, patch?: object) => object | null,
+ *   },
+ *   onRefresh: () => void,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
  *   onDelete: (id: string) => void,
  * }} props
  */
-function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
+function PromptList({
+  prompts,
+  primaryId,
+  isAccount,
+  profileStore,
+  promptStore,
+  onRefresh,
+  onSelect,
+  onEdit,
+  onDelete,
+}) {
   if (prompts.length === 0) {
     return p({ class: "cue-empty" }, "No prompts yet.")
   }
@@ -116,6 +167,10 @@ function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
       PromptRow({
         prompt,
         primaryId,
+        isAccount,
+        profileStore,
+        promptStore,
+        onRefresh,
         onSelect,
         onEdit,
         onDelete,
@@ -127,14 +182,34 @@ function PromptList({ prompts, primaryId, onSelect, onEdit, onDelete }) {
 /**
  * One library row: open the prompt, with launch/Edit/Delete beside it.
  * @param {{
- *   prompt: { id: string, title: string, body?: string },
+ *   prompt: { id: string, title: string, body?: string, isPublic?: boolean },
  *   primaryId: string,
+ *   isAccount: boolean,
+ *   profileStore?: {
+ *     get: () => Promise<{ tag: string } | null>,
+ *     setTag: (tag: string) => Promise<{ tag: string }>,
+ *   },
+ *   promptStore?: {
+ *     get: (id: string) => object | null,
+ *     update: (id: string, patch?: object) => object | null,
+ *   },
+ *   onRefresh: () => void,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
  *   onDelete: (id: string) => void,
  * }} props
  */
-function PromptRow({ prompt, primaryId, onSelect, onEdit, onDelete }) {
+function PromptRow({
+  prompt,
+  primaryId,
+  isAccount,
+  profileStore,
+  promptStore,
+  onRefresh,
+  onSelect,
+  onEdit,
+  onDelete,
+}) {
   const snippet = promptSnippet(prompt.body)
 
   return li(
@@ -175,6 +250,40 @@ function PromptRow({ prompt, primaryId, onSelect, onEdit, onDelete }) {
           onEdit(prompt.id)
         },
       }),
+      isPublicPrompt(prompt)
+        ? PublicPromptIndicator({
+            isAccount,
+            onMakePrivate: () => {
+              if (!promptStore) {
+                return
+              }
+              void makePromptPrivate({
+                promptId: prompt.id,
+                promptStore,
+              }).then((result) => {
+                if (result.ok) {
+                  onRefresh()
+                }
+              })
+            },
+          })
+        : SharePromptButton({
+            isAccount,
+            onShare: () => {
+              if (!promptStore || !profileStore) {
+                return
+              }
+              void sharePrompt({
+                promptId: prompt.id,
+                promptStore,
+                profileStore,
+              }).then((result) => {
+                if (result.ok) {
+                  onRefresh()
+                }
+              })
+            },
+          }),
       RowAction({
         label: "Delete",
         icon: DeleteIcon(),
