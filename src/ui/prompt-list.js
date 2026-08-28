@@ -1,7 +1,9 @@
 import van from "vanjs-core"
 import { isPublicPrompt } from "../prompts/record.js"
+import { copyPublicPromptLink } from "../sharing/copy-link.js"
 import { makePromptPrivate, sharePrompt } from "../sharing/share-prompt.js"
 import {
+  CopyPublicLinkButton,
   PublicPromptIndicator,
   SharePromptButton,
 } from "../sharing/share-controls.js"
@@ -40,6 +42,41 @@ const { button, div, li, p, span, ul } = van.tags
  */
 export function PromptBoard({ state, session, profileStore, promptStore }) {
   const isAccount = session?.kind === "account"
+  const publicTag = van.state(/** @type {string | null} */ (null))
+  if (profileStore) {
+    void profileStore
+      .get()
+      .then((profile) => {
+        if (profile?.tag) {
+          publicTag.val = profile.tag
+        }
+      })
+      .catch(() => {})
+  }
+
+  /**
+   * Copies the public permalink for a prompt, loading the tag if needed.
+   * @param {string} promptId
+   */
+  async function copyLink(promptId) {
+    let tag = publicTag.val
+    if (!tag && profileStore) {
+      try {
+        const profile = await profileStore.get()
+        tag = profile?.tag ?? null
+        if (tag) {
+          publicTag.val = tag
+        }
+      } catch {
+        return
+      }
+    }
+    if (!tag) {
+      return
+    }
+    await copyPublicPromptLink({ tag, promptId })
+  }
+
   return div(
     { class: "cue-library" },
     session
@@ -100,6 +137,10 @@ export function PromptBoard({ state, session, profileStore, promptStore }) {
         profileStore,
         promptStore,
         onRefresh: () => state.refresh(),
+        onCopyLink: (id) => copyLink(id),
+        onPublicTag: (tag) => {
+          publicTag.val = tag
+        },
         onSelect: (id, providerId) => state.select(id, providerId),
         onEdit: (id) => state.startEdit(id),
         onDelete: (id) => state.remove(id),
@@ -138,6 +179,8 @@ export function promptSnippet(body, max = 88) {
  *     update: (id: string, patch?: object) => object | null,
  *   },
  *   onRefresh: () => void,
+ *   onCopyLink: (id: string) => void,
+ *   onPublicTag: (tag: string) => void,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
  *   onDelete: (id: string) => void,
@@ -150,6 +193,8 @@ function PromptList({
   profileStore,
   promptStore,
   onRefresh,
+  onCopyLink,
+  onPublicTag,
   onSelect,
   onEdit,
   onDelete,
@@ -171,6 +216,8 @@ function PromptList({
         profileStore,
         promptStore,
         onRefresh,
+        onCopyLink,
+        onPublicTag,
         onSelect,
         onEdit,
         onDelete,
@@ -194,6 +241,8 @@ function PromptList({
  *     update: (id: string, patch?: object) => object | null,
  *   },
  *   onRefresh: () => void,
+ *   onCopyLink: (id: string) => void,
+ *   onPublicTag: (tag: string) => void,
  *   onSelect: (id: string, providerId?: string) => void,
  *   onEdit: (id: string) => void,
  *   onDelete: (id: string) => void,
@@ -206,6 +255,8 @@ function PromptRow({
   profileStore,
   promptStore,
   onRefresh,
+  onCopyLink,
+  onPublicTag,
   onSelect,
   onEdit,
   onDelete,
@@ -251,6 +302,12 @@ function PromptRow({
         },
       }),
       isPublicPrompt(prompt)
+        ? CopyPublicLinkButton({
+            isAccount,
+            onCopy: () => onCopyLink(prompt.id),
+          })
+        : null,
+      isPublicPrompt(prompt)
         ? PublicPromptIndicator({
             isAccount,
             onMakePrivate: () => {
@@ -277,10 +334,22 @@ function PromptRow({
                 promptId: prompt.id,
                 promptStore,
                 profileStore,
-              }).then((result) => {
-                if (result.ok) {
-                  onRefresh()
+              }).then(async (result) => {
+                if (!result.ok) {
+                  return
                 }
+                if (result.tag) {
+                  onPublicTag(result.tag)
+                  try {
+                    await copyPublicPromptLink({
+                      tag: result.tag,
+                      promptId: prompt.id,
+                    })
+                  } catch {
+                    // Copy button remains available if clipboard is blocked.
+                  }
+                }
+                onRefresh()
               })
             },
           }),

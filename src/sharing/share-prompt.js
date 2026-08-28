@@ -8,7 +8,12 @@ import { normalizeTag, validateTag } from "../profile/record.js"
  * }} options
  */
 async function ensureProfileTag({ profileStore, promptForTag }) {
-  const profile = await profileStore.get()
+  let profile = null
+  try {
+    profile = await profileStore.get()
+  } catch {
+    profile = null
+  }
   if (profile?.tag) {
     return profile
   }
@@ -63,7 +68,7 @@ export async function sharePrompt({
   }
 
   promptStore.update(promptId, { isPublic: true })
-  return { ok: true }
+  return { ok: true, tag: tagResult.tag }
 }
 
 /**

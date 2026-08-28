@@ -93,7 +93,10 @@ export function createProfileStore(db, uid) {
 
       const nextProfile = buildProfile({ tag })
       transaction.set(profileRef, toFirestoreProfile(nextProfile))
-      transaction.set(tagRef, { uid })
+      // userTags docs are create-only in rules; skip when this uid already owns it.
+      if (!tagSnap.exists()) {
+        transaction.set(tagRef, { uid })
+      }
       return nextProfile
     })
 

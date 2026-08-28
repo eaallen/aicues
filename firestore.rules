@@ -43,8 +43,8 @@ service cloud.firestore {
     // Fields:
     //   - uid: string (required) — owner uid
     //
-    // Access: authenticated read; create when absent and uid matches auth;
-    // delete by owner only; no update.
+    // Access: public get (signed-out wallet resolves tag → uid); no list;
+    // create when absent and uid matches auth; delete by owner only; no update.
     //
     // ===============================================================
 
@@ -74,8 +74,12 @@ service cloud.firestore {
     }
 
     match /cueUsers/{uid} {
-      allow read: if isAccountOwner(uid) ||
-        (resource.data.keys().hasAny(['tag']) && resource.data.tag is string);
+      // Split allows so owner get() works when the profile doc does not exist yet
+      // (prompts live in a subcollection; the parent cueUsers/{uid} is created
+      // only when a tag is set). Combining owner || resource.data in one rule
+      // denies reads of missing documents.
+      allow get: if isAccountOwner(uid);
+      allow get: if resource.data.tag is string;
       allow create: if isAccountOwner(uid) &&
         isValidCueProfile(request.resource.data);
       allow update: if isAccountOwner(uid) &&
@@ -84,7 +88,7 @@ service cloud.firestore {
     }
 
     match /userTags/{tag} {
-      allow read: if isAccountUser();
+      allow get: if true;
       allow create: if isAccountUser() &&
         !exists(/databases/$(database)/documents/userTags/$(tag)) &&
         hasOnlyAllowedFields(['uid']) &&
@@ -96,8 +100,10 @@ service cloud.firestore {
     }
 
     match /cueUsers/{uid}/prompts/{promptId} {
-      allow read: if isAccountOwner(uid) ||
-        resource.data.isPublic == true;
+      // Split owner vs public so an unfiltered owner list query is not rejected
+      // for lacking where("isPublic", "==", true).
+      allow get, list: if isAccountOwner(uid);
+      allow get, list: if resource.data.isPublic == true;
       allow create: if isAccountOwner(uid) &&
         isValidCuePrompt(request.resource.data) &&
         request.resource.data.createdAt == request.resource.data.updatedAt;

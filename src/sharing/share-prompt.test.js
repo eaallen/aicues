@@ -42,10 +42,31 @@ describe("sharePrompt", () => {
       confirm,
     })
 
-    expect(result).toEqual({ ok: true })
+    expect(result).toEqual({ ok: true, tag: "eli" })
     expect(profileStore.get).toHaveBeenCalledOnce()
     expect(profileStore.setTag).not.toHaveBeenCalled()
     expect(confirm).toHaveBeenCalledWith("Make this prompt public?")
+    expect(promptStore.update).toHaveBeenCalledWith("p1", { isPublic: true })
+  })
+
+  it("prompts for a tag when profile get fails, then publishes after setTag", async () => {
+    const { profileStore, promptStore } = mocks()
+    profileStore.get.mockRejectedValueOnce(
+      new Error("Missing or insufficient permissions."),
+    )
+    const confirm = vi.fn(() => true)
+    const promptForTag = vi.fn(() => "my-tag")
+
+    const result = await sharePrompt({
+      promptId: "p1",
+      promptStore,
+      profileStore,
+      confirm,
+      promptForTag,
+    })
+
+    expect(result).toEqual({ ok: true, tag: "my-tag" })
+    expect(profileStore.setTag).toHaveBeenCalledWith("my-tag")
     expect(promptStore.update).toHaveBeenCalledWith("p1", { isPublic: true })
   })
 
@@ -62,7 +83,7 @@ describe("sharePrompt", () => {
       promptForTag,
     })
 
-    expect(result).toEqual({ ok: true })
+    expect(result).toEqual({ ok: true, tag: "my-tag" })
     expect(promptForTag).toHaveBeenCalled()
     expect(profileStore.setTag).toHaveBeenCalledWith("my-tag")
     expect(promptStore.update).toHaveBeenCalledWith("p1", { isPublic: true })
@@ -84,7 +105,7 @@ describe("sharePrompt", () => {
       promptForTag,
     })
 
-    expect(result).toEqual({ ok: true })
+    expect(result).toEqual({ ok: true, tag: "good-tag" })
     expect(promptForTag).toHaveBeenCalledTimes(2)
     expect(profileStore.setTag).toHaveBeenCalledWith("good-tag")
   })

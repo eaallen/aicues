@@ -111,3 +111,23 @@ export function GlobeIcon(props = {}) {
     path({ d: "M6 1.5C4.8 2.85 4.125 4.575 4.125 6S4.8 9.15 6 10.2", ...stroke }),
   )
 }
+
+/**
+ * Chain-link mark for copying a public prompt URL.
+ */
+export function LinkIcon() {
+  return CueIcon(
+    path({
+      d: "M4.75 7.25 7.25 4.75",
+      ...stroke,
+    }),
+    path({
+      d: "M5.25 8.5 4 9.75a1.75 1.75 0 1 1-2.5-2.5L2.75 6",
+      ...stroke,
+    }),
+    path({
+      d: "M6.75 3.5 8 2.25a1.75 1.75 0 1 1 2.5 2.5L9.25 6",
+      ...stroke,
+    }),
+  )
+}

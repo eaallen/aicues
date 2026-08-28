@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest"
-import { applyRouteMeta, parseRoute } from "./router.js"
+import { applyRouteMeta, parseRoute, publicWalletPath, publicWalletUrl } from "./router.js"
 
 describe("parseRoute", () => {
   it("maps /app to the private wallet", () => {
@@ -31,6 +31,24 @@ describe("parseRoute", () => {
       tag: "eli-dev",
       promptId: "abc-123",
     })
+  })
+})
+
+describe("publicWalletPath", () => {
+  it("builds a wallet path from a tag", () => {
+    expect(publicWalletPath("Eli-Dev")).toBe("/w/eli-dev")
+  })
+
+  it("builds a prompt permalink from tag and id", () => {
+    expect(publicWalletPath("eli-dev", "abc-123")).toBe("/w/eli-dev/abc-123")
+  })
+})
+
+describe("publicWalletUrl", () => {
+  it("prefixes the path with the given origin", () => {
+    expect(publicWalletUrl("eli-dev", "p1", "https://aicues.web.app")).toBe(
+      "https://aicues.web.app/w/eli-dev/p1",
+    )
   })
 })
 

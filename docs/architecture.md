@@ -88,7 +88,7 @@ Public listing: query `cueUsers/{uid}/prompts` where `isPublic == true`.
 | Path | Read | Write |
 |------|------|-------|
 | `cueUsers/{uid}` | Owner; **public read when `tag` is present** (for public wallet header) | Owner only; validate tag format |
-| `userTags/{tag}` | Authenticated (for availability check) | Create if owner uid matches and doc absent; delete by owner only (tag change); no update |
+| `userTags/{tag}` | **Public get** (tag → uid for public wallet); no list | Create if owner uid matches and doc absent; delete by owner only (tag change); no update |
 | `cueUsers/{uid}/prompts/{promptId}` | Owner; **anyone if `resource.data.isPublic == true`** | Owner only; validate `isPublic` boolean when present |
 
 Anonymous users cannot set tags or publish (account-only, matching existing prompt ownership rules).
@@ -123,8 +123,8 @@ No new npm router dependency unless we outgrow this.
 ### make-prompt-public
 
 - **Share** action on each private prompt row (account users only).
-- Flow: Share → if no tag, inline tag picker (reuse profile validation) → confirm dialog → set `isPublic: true`.
-- Public prompts show a **green globe/network icon**; hover reveals “Make private”; click opens confirm dialog, then sets `isPublic: false`.
+- Flow: Share → if no tag, inline tag picker (reuse profile validation) → confirm dialog → set `isPublic: true` → copy the prompt’s public URL (`/w/<tag>/<promptId>`).
+- Public prompts show a **copy-link** action (copies that absolute URL) and a **green globe/network icon**; hover on the globe reveals “Make private”; click opens confirm dialog, then sets `isPublic: false`.
 - Guest/anonymous: hide share control.
 
 ### public-wallet

@@ -44,6 +44,29 @@ export function parseRoute(pathname) {
 }
 
 /**
+ * Path for a public wallet, optionally focused on one prompt.
+ * @param {string} tag
+ * @param {string} [promptId]
+ */
+export function publicWalletPath(tag, promptId) {
+  const normalized = normalizeTag(tag)
+  if (promptId) {
+    return `/w/${normalized}/${promptId}`
+  }
+  return `/w/${normalized}`
+}
+
+/**
+ * Absolute public wallet URL.
+ * @param {string} tag
+ * @param {string | undefined} promptId
+ * @param {string} origin
+ */
+export function publicWalletUrl(tag, promptId, origin) {
+  return `${origin}${publicWalletPath(tag, promptId)}`
+}
+
+/**
  * Finds or creates the robots meta element.
  */
 function robotsMeta() {

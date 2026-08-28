@@ -18,3 +18,10 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FIRE_RAT }}
           channelId: live
           projectId: fire-rat
+      - name: Deploy Firestore rules
+        run: |
+          printf '%s' "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > "${RUNNER_TEMP}/gcp.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="${RUNNER_TEMP}/gcp.json"
+          npx -y firebase-tools@latest deploy --only firestore:rules --project fire-rat
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FIRE_RAT }}

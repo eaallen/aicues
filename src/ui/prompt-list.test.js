@@ -83,3 +83,73 @@ describe("PromptBoard layout", () => {
     root.remove()
   })
 })
+
+describe("PromptBoard copy link", () => {
+  /**
+   * Waits a turn so async handlers can finish.
+   */
+  async function tick() {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  }
+
+  it("shows copy link on public prompts for account users", async () => {
+    const store = memoryStore()
+    const created = store.create({ title: "Hello", body: "world" })
+    store.update(created.id, { isPublic: true })
+    const state = createAppState(store)
+    const writeText = vi.fn(async () => {})
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText },
+    })
+
+    const root = PromptBoard({
+      state,
+      session: {
+        kind: "account",
+        label: "user@example.com",
+        onSignOut: vi.fn(),
+      },
+      profileStore: {
+        get: vi.fn(async () => ({ tag: "eli-dev", updatedAt: 1 })),
+        setTag: vi.fn(),
+      },
+      promptStore: store,
+    })
+    document.body.append(root)
+    await tick()
+
+    const copyButton = root.querySelector('button[aria-label="Copy link"]')
+    expect(copyButton).toBeTruthy()
+    copyButton?.click()
+    await tick()
+
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/w/eli-dev/${created.id}`,
+    )
+
+    vi.unstubAllGlobals()
+    root.remove()
+  })
+
+  it("hides copy link for guests", () => {
+    const store = memoryStore()
+    const created = store.create({ title: "Hello", body: "world" })
+    store.update(created.id, { isPublic: true })
+    const state = createAppState(store)
+    const root = PromptBoard({
+      state,
+      session: {
+        kind: "anonymous",
+        label: "Guest",
+        onSignOut: vi.fn(),
+      },
+    })
+    document.body.append(root)
+
+    expect(root.querySelector('button[aria-label="Copy link"]')).toBeNull()
+    expect(root.querySelector('button[aria-label="Share"]')).toBeNull()
+
+    root.remove()
+  })
+})

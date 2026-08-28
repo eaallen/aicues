@@ -32,13 +32,21 @@ export function ProfilePage({ profileStore, authEmail, onBack, confirm }) {
   const currentTag = van.state(/** @type {string | null} */ (null))
   const confirmFn = confirm ?? (() => true)
 
-  void profileStore.get().then((profile) => {
-    if (profile) {
-      tag.val = profile.tag
-      currentTag.val = profile.tag
-    }
-    loading.val = false
-  })
+  void profileStore
+    .get()
+    .then((profile) => {
+      if (profile) {
+        tag.val = profile.tag
+        currentTag.val = profile.tag
+      }
+    })
+    .catch((caught) => {
+      error.val =
+        caught instanceof Error ? caught.message : "Failed to load profile"
+    })
+    .finally(() => {
+      loading.val = false
+    })
 
   /**
    * Persists the tag when validation and confirm pass.

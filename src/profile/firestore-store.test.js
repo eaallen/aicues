@@ -96,6 +96,15 @@ describe("createProfileStore", () => {
     expect(await store.isTagAvailable("mine")).toBe(true)
   })
 
+  it("does not rewrite the tag index when the user already owns the tag", async () => {
+    const existingIndex = { uid: "user-1" }
+    docs.set("cueUsers/user-1", { tag: "eli-dev", updatedAt: 1 })
+    docs.set("userTags/eli-dev", existingIndex)
+    const store = createProfileStore(db, uid)
+    await store.setTag("eli-dev")
+    expect(docs.get("userTags/eli-dev")).toBe(existingIndex)
+  })
+
   it("changes tag by deleting old index and creating new one", async () => {
     docs.set("cueUsers/user-1", { tag: "old-tag", updatedAt: 1 })
     docs.set("userTags/old-tag", { uid: "user-1" })

@@ -1,5 +1,5 @@
 import van from "vanjs-core"
-import { GlobeIcon } from "../ui/icons.js"
+import { GlobeIcon, LinkIcon } from "../ui/icons.js"
 
 const { button, div } = van.tags
 
@@ -30,6 +30,52 @@ function RowAction({ label, icon, className = "cue-row-btn", onClick }) {
         onclick: onClick,
       },
       icon,
+    ),
+  )
+}
+
+/**
+ * Copies a public prompt permalink. Account users only; shown on public rows.
+ * @param {{
+ *   isAccount: boolean,
+ *   onCopy: () => void | Promise<void>,
+ * }} props
+ */
+export function CopyPublicLinkButton({ isAccount, onCopy }) {
+  if (!isAccount) {
+    return null
+  }
+
+  const copied = van.state(false)
+
+  return div(
+    { class: "tooltip tooltip-top tooltip-end cue-tooltip" },
+    () =>
+      div(
+        {
+          class: "tooltip-content cue-tooltip-content",
+          "aria-hidden": "true",
+        },
+        copied.val ? "Copied!" : "Copy link",
+      ),
+    button(
+      {
+        type: "button",
+        class: "cue-row-btn",
+        "aria-label": "Copy link",
+        onclick: (event) => {
+          event.stopPropagation()
+          void Promise.resolve(onCopy())
+            .then(() => {
+              copied.val = true
+              globalThis.setTimeout(() => {
+                copied.val = false
+              }, 1500)
+            })
+            .catch(() => {})
+        },
+      },
+      LinkIcon(),
     ),
   )
 }

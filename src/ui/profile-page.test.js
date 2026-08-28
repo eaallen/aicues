@@ -166,6 +166,27 @@ describe("ProfilePage", () => {
     root.remove()
   })
 
+  it("shows an error when the profile fails to load", async () => {
+    const store = mockStore()
+    store.get.mockRejectedValueOnce(
+      new Error("Missing or insufficient permissions."),
+    )
+    const root = ProfilePage({
+      profileStore: store,
+      authEmail: "user@example.com",
+      onBack: () => {},
+    })
+    document.body.append(root)
+    await tick()
+
+    expect(root.querySelector(".cue-profile-error")?.textContent).toMatch(
+      /permission/i,
+    )
+    expect(root.querySelector('input[name="tag"]')).toBeTruthy()
+
+    root.remove()
+  })
+
   it("calls onBack from the back link", async () => {
     const onBack = vi.fn()
     const root = ProfilePage({
