@@ -39,6 +39,10 @@ describe("PublicWalletApp", () => {
     expect(root.textContent).toContain("Wallet not found")
     expect(root.textContent).toContain("This public wallet does not exist.")
     expect(root.querySelector(".cue-public-header")).toBeNull()
+    const home = root.querySelector('a[href="/"]')
+    const account = root.querySelector('a[href="/app"]')
+    expect(home?.textContent).toBe("AI Cues")
+    expect(account?.textContent).toBe("Create account")
 
     root.remove()
   })
@@ -159,5 +163,90 @@ describe("PublicWalletApp", () => {
     const restored = second.querySelector('select[aria-label="Primary AI provider"]')
     expect(restored instanceof HTMLSelectElement && restored.value).toBe("chatgpt")
     second.remove()
+  })
+
+  it("links home and create account when the visitor is signed out", async () => {
+    const root = PublicWalletApp({
+      tag: "eli-dev",
+      publicStore: mockStore({ profile: { tag: "eli-dev" }, prompts }),
+      openUrl: () => {},
+      storage: createMemoryStorage(),
+    })
+    document.body.append(root)
+    await tick()
+
+    const home = root.querySelector('a[href="/"]')
+    const account = root.querySelector('a[href="/app"]')
+    expect(home?.textContent).toBe("AI Cues")
+    expect(account?.textContent).toBe("Create account")
+    expect(root.querySelector('a[href="/app/profile"]')).toBeNull()
+
+    root.remove()
+  })
+
+  it("links home and your profile for a signed-in account visitor", async () => {
+    const root = PublicWalletApp({
+      tag: "eli-dev",
+      session: { kind: "account" },
+      publicStore: mockStore({ profile: { tag: "eli-dev" }, prompts }),
+      openUrl: () => {},
+      storage: createMemoryStorage(),
+    })
+    document.body.append(root)
+    await tick()
+
+    const home = root.querySelector('a[href="/"]')
+    const profile = root.querySelector('a[href="/app/profile"]')
+    expect(home?.textContent).toBe("AI Cues")
+    expect(profile?.textContent).toBe("Your profile")
+    expect(root.querySelector('a[href="/app"]')).toBeNull()
+
+    root.remove()
+  })
+
+  it("treats guests like signed-out visitors for the account link", async () => {
+    const root = PublicWalletApp({
+      tag: "eli-dev",
+      session: { kind: "anonymous" },
+      publicStore: mockStore({ profile: { tag: "eli-dev" }, prompts }),
+      openUrl: () => {},
+      storage: createMemoryStorage(),
+    })
+    document.body.append(root)
+    await tick()
+
+    expect(root.querySelector('a[href="/app"]')?.textContent).toBe("Create account")
+    expect(root.querySelector('a[href="/app/profile"]')).toBeNull()
+
+    root.remove()
+  })
+
+  it("switches to Your profile when auth reports an account user", async () => {
+    /** @type {(user: { isAnonymous: boolean, email?: string } | null) => void} */
+    let emit = () => {}
+    const root = PublicWalletApp({
+      tag: "eli-dev",
+      publicStore: mockStore({ profile: { tag: "eli-dev" }, prompts }),
+      openUrl: () => {},
+      storage: createMemoryStorage(),
+      authApi: {
+        watch(listener) {
+          emit = listener
+        },
+      },
+    })
+    document.body.append(root)
+    await tick()
+    expect(root.querySelector('a[href="/app"]')?.textContent).toBe("Create account")
+
+    emit({ isAnonymous: false, email: "user@example.com" })
+    await tick()
+
+    expect(root.querySelector('a[href="/app/profile"]')?.textContent).toBe(
+      "Your profile",
+    )
+    expect(root.querySelector('a[href="/app"]')).toBeNull()
+
+    root.remove()
   })
 })

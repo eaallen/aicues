@@ -132,6 +132,7 @@ No new npm router dependency unless we outgrow this.
 - Layout mirrors private wallet (same list, provider picker, launch menu).
 - **Read-only:** no New, Edit, Delete, Share.
 - **Header:** author `@tag` as prominent heading only — **no email** on public pages.
+- **Chrome:** **AI Cues** links to `/` (about/landing). Signed-in account users get **Your profile** → `/app/profile`; everyone else gets **Create account** → `/app` (auth gate). Same chrome on the unknown-tag page.
 - **Highlighted prompt** (`/:promptId`): reorder list to put target first (or scroll into view), apply subtle glow class on that row.
 - Unknown tag → friendly 404.
 - Unknown or non-public prompt id → show an alert (“Prompt not found”) and still render the rest of the public wallet.

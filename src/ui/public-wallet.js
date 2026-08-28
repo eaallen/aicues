@@ -1,4 +1,5 @@
 import van from "vanjs-core"
+import { sessionFromUser } from "../firebase/auth.js"
 import { openProviderUrl } from "../providers/open-window.js"
 import {
   DEFAULT_PROVIDER_ID,
@@ -12,7 +13,7 @@ import { PrimaryProviderSelect } from "./provider-picker.js"
 import { PublicPromptBoard, reorderForHighlight } from "./public-prompt-list.js"
 import { launchPrompt } from "./session.js"
 
-const { div, h1, p } = van.tags
+const { a, div, h1, p } = van.tags
 
 /**
  * Default opener used outside of tests.
@@ -20,6 +21,30 @@ const { div, h1, p } = van.tags
  */
 function defaultOpenUrl(url) {
   openProviderUrl(url)
+}
+
+/**
+ * Home + profile/account chrome for public wallet pages.
+ * @param {{ isAccount: boolean }} props
+ */
+function PublicWalletNav({ isAccount }) {
+  return div(
+    { class: "cue-session cue-public-nav" },
+    a(
+      {
+        class: "btn btn-sm btn-ghost cue-btn-ghost",
+        href: "/",
+      },
+      "AI Cues",
+    ),
+    a(
+      {
+        class: "btn btn-sm btn-ghost cue-btn-ghost",
+        href: isAccount ? "/app/profile" : "/app",
+      },
+      isAccount ? "Your profile" : "Create account",
+    ),
+  )
 }
 
 /**
@@ -35,6 +60,10 @@ function defaultOpenUrl(url) {
  *   },
  *   openUrl?: (url: string) => void,
  *   storage?: Pick<Storage, "getItem" | "setItem">,
+ *   session?: { kind: "account" | "anonymous" },
+ *   authApi?: {
+ *     watch: (listener: (user: import("firebase/auth").User | null) => void) => void,
+ *   },
  * }} props
  */
 export function PublicWalletApp({
@@ -43,17 +72,26 @@ export function PublicWalletApp({
   publicStore,
   openUrl,
   storage,
+  session,
+  authApi,
 }) {
   const phase = van.state(
     /** @type {{ type: "loading" } | { type: "not-found" } | { type: "ready", profile: { tag: string }, prompts: object[] }} */ ({
       type: "loading",
     }),
   )
+  const isAccount = van.state(session?.kind === "account")
   const prefStorage = storage ?? globalThis.localStorage
   const providerId = van.state(
     getProvider(storedProviderId(prefStorage) ?? DEFAULT_PROVIDER_ID).id,
   )
   const open = openUrl ?? defaultOpenUrl
+
+  if (!session && authApi) {
+    authApi.watch((user) => {
+      isAccount.val = sessionFromUser(user)?.kind === "account"
+    })
+  }
 
   void publicStore.listByTag(tag).then((result) => {
     if (!result) {
@@ -96,14 +134,20 @@ export function PublicWalletApp({
 
   return div({ class: "cue-shell" }, () => {
     const current = phase.val
+    const nav = PublicWalletNav({ isAccount: isAccount.val })
 
     if (current.type === "loading") {
-      return div({ class: "cue-board" }, p({ class: "cue-empty" }, "Loading…"))
+      return div(
+        { class: "cue-board" },
+        nav,
+        p({ class: "cue-empty" }, "Loading…"),
+      )
     }
 
     if (current.type === "not-found") {
       return div(
         { class: "cue-board cue-wallet-not-found" },
+        nav,
         h1({ class: "cue-wallet-not-found-title" }, "Wallet not found"),
         p({ class: "cue-empty" }, "This public wallet does not exist."),
       )
@@ -119,6 +163,7 @@ export function PublicWalletApp({
 
     return div(
       { class: "cue-board" },
+      nav,
       h1({ class: "cue-public-header" }, `@${current.profile.tag}`),
       div(
         { class: "cue-library" },

@@ -648,6 +648,14 @@ textarea {
   letter-spacing: -0.02em;
 }
 
+.cue-public-nav {
+  margin-bottom: 12px;
+}
+
+.cue-public-nav a.cue-btn-ghost {
+  text-decoration: none;
+}
+
 .cue-wallet-not-found-title {
   margin: 0 0 8px;
   font-size: 20px;

@@ -5,7 +5,8 @@ import "@fontsource/ibm-plex-mono/500.css"
 import "./style.css"
 import van from "vanjs-core"
 import { initCueAnalytics } from "./firebase/analytics.js"
-import { getCueDb } from "./firebase/config.js"
+import { createAuthApi } from "./firebase/auth.js"
+import { getCueAuth, getCueDb } from "./firebase/config.js"
 import { applyRouteMeta, parseRoute } from "./router.js"
 import { createPublicPromptStore } from "./sharing/public-store.js"
 import { App } from "./ui/app.js"
@@ -23,6 +24,7 @@ function Root() {
       tag: route.tag,
       highlightPromptId: route.promptId,
       publicStore: createPublicPromptStore(getCueDb()),
+      authApi: createAuthApi(getCueAuth()),
     })
   }
   return App({ route })
