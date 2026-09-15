@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Cues — a brown-bag tour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --paper: #f5f5f5;
+      --muted: #6b6b6b;
+      --line: #d4d4d4;
+      --panel: #ececec;
+      --accent: #6f8fad;
+      --success: #5a7a4a;
+      --live: #7a9a6a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: -0.012em;
+    }
+
+    #deck {
+      height: 100%;
+    }
+
+    .slide {
+      height: 100%;
+      padding: 7vh 8vw 10vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.4rem;
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .slide.light {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    /* Inner grid: the host forces each .slide into a column with display:flex !important. */
+    .slide.split-slide {
+      padding: 0;
+      gap: 0;
+      justify-content: stretch;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .kicker {
+      margin: 0;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: clamp(12px, 1.4vw, 15px);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .slide.light .kicker { color: #4d6a86; }
+
+    h1, h2 {
+      margin: 0;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      max-width: 22ch;
+    }
+
+    h1 { font-size: clamp(2.4rem, 6.2vw, 5.4rem); }
+    h2 { font-size: clamp(2rem, 4.8vw, 3.8rem); }
+
+    .lede, .body {
+      margin: 0;
+      max-width: 38rem;
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      line-height: 1.45;
+      color: #c8c8c8;
+      font-weight: 400;
+    }
+
+    .slide.light .lede,
+    .slide.light .body { color: var(--muted); }
+
+    .wide { max-width: 46rem; }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      font-weight: 500;
+    }
+
+    .brand-mark svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .pane {
+      padding: 8vh 6vw 12vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.2rem;
+      min-width: 0;
+    }
+
+    .pane.dark { background: var(--ink); color: var(--paper); }
+    .pane.paper { background: var(--paper); color: var(--ink); }
+    .pane.paper .lede,
+    .pane.paper .body { color: var(--muted); }
+    .pane.paper { align-items: center; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 0.4rem;
+    }
+
+    .card {
+      border: 1px solid #2c2c2c;
+      background: #181818;
+      padding: 1.25rem 1.2rem 1.35rem;
+      min-height: 10rem;
+    }
+
+    .slide.light .card {
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .card-n {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--accent);
+      margin: 0 0 0.7rem;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: clamp(1rem, 1.7vw, 1.25rem);
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+    }
+
+    .quote {
+      margin: 0;
+      padding: 1.4rem 1.5rem;
+      max-width: 38rem;
+      border-left: 3px solid var(--accent);
+      background: #181818;
+      font-size: clamp(1rem, 1.8vw, 1.3rem);
+      line-height: 1.45;
+      color: #e6e6e6;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.7rem 0.55rem;
+      margin-top: 0.5rem;
+    }
+
+    .flow-step {
+      border: 1px solid #3a3a3a;
+      background: #181818;
+      color: #f5f5f5;
+      padding: 0.85rem 1.05rem;
+      font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+      font-weight: 500;
+    }
+
+    .slide.light .flow-step {
+      border-color: var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .flow-arrow {
+      color: var(--accent);
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .providers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      max-width: 42rem;
+    }
+
+    .chip {
+      border: 1px solid #3a3a3a;
+      padding: 0.45rem 0.8rem;
+      font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+      background: #181818;
+    }
+
+    .slide.light .chip {
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .values {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem 1.4rem;
+      max-width: 46rem;
+    }
+
+    .value {
+      border-top: 1px solid #2c2c2c;
+      padding-top: 0.9rem;
+    }
+
+    .slide.light .value { border-top-color: var(--line); }
+
+    .value strong {
+      display: block;
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .value span {
+      color: #9b9b9b;
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      line-height: 1.4;
+    }
+
+    .slide.light .value span { color: var(--muted); }
+
+    ol.steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-width: 34rem;
+    }
+
+    ol.steps li {
+      display: grid;
+      grid-template-columns: 2.2rem 1fr;
+      gap: 0.7rem;
+      align-items: baseline;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid #2c2c2c;
+      font-size: clamp(1.05rem, 1.9vw, 1.35rem);
+    }
+
+    .slide.light ol.steps li { border-bottom-color: var(--line); }
+
+    ol.steps li:first-child { border-top: 1px solid #2c2c2c; }
+    .slide.light ol.steps li:first-child { border-top-color: var(--line); }
+
+    .n {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.85em;
+      color: var(--accent);
+    }
+
+    .url {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: clamp(1.3rem, 3.4vw, 2.4rem);
+      letter-spacing: -0.03em;
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-word;
+    }
+
+    .url:hover { text-decoration: underline; }
+
+    .mock {
+      width: 100%;
+      max-width: 28rem;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      border: 1px solid #c8c8c8;
+      padding: 1.1rem 1.15rem 1.2rem;
+      font-size: 13px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+    }
+
+    .pane.paper .mock {
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+    }
+
+    .mock-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #6b6b6b;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .mock-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .mock-btn, .mock-select {
+      border: 1px solid #c8c8c8;
+      background: #ececec;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .mock-tag {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      margin: 4px 0 12px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid #d4d4d4;
+    }
+
+    .row:first-of-type { border-top: 1px solid #d4d4d4; }
+
+    .row.glow {
+      background: color-mix(in srgb, #6f8fad 16%, #f5f5f5);
+      margin: 0 -8px;
+      padding-left: 8px;
+      padding-right: 8px;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #6f8fad 40%, transparent);
+    }
+
+    .row-title {
+      display: block;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .row-snip {
+      display: block;
+      color: #6b6b6b;
+      font-size: 12px;
+      margin-top: 2px;
+      max-width: 18rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      color: #6b6b6b;
+      flex: 0 0 auto;
+    }
+
+    .globe {
+      width: 14px;
+      height: 14px;
+      color: var(--success);
+    }
+
+    .chat {
+      width: 100%;
+      max-width: 26rem;
+      background: #fff;
+      color: #1a1a1a;
+      border: 1px solid #c8c8c8;
+      padding: 1rem 1.1rem 1.15rem;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+    }
+
+    .chat-name {
+      font-size: 12px;
+      color: #6b6b6b;
+      margin: 0 0 0.8rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    .chat-box {
+      border: 1px solid #c8c8c8;
+      background: #f5f5f5;
+      padding: 0.85rem 0.9rem;
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 5.5rem;
+    }
+
+    .chat-send {
+      margin-top: 8px;
+      text-align: right;
+      font-size: 12px;
+      color: #4d6a86;
+      font-weight: 500;
+    }
+
+    .versus {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: stretch;
+      width: min(52rem, 100%);
+    }
+
+    .vs-card {
+      border: 1px solid #2c2c2c;
+      background: #181818;
+      padding: 1.2rem 1.15rem;
+    }
+
+    .vs-card.good { border-color: color-mix(in srgb, var(--accent) 55%, #2c2c2c); }
+
+    .vs-label {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9b9b9b;
+      margin: 0 0 0.7rem;
+    }
+
+    .vs-card.good .vs-label { color: var(--accent); }
+
+    .vs-card p {
+      margin: 0;
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      line-height: 1.4;
+    }
+
+    .vs-mid {
+      align-self: center;
+      color: var(--accent);
+      font-size: 1.4rem;
+    }
+
+    .foot {
+      margin: 0;
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: #9b9b9b;
+    }
+
+    .cta {
+      display: inline-block;
+      margin-top: 0.4rem;
+      padding: 0.7rem 1.05rem;
+      background: #e0e0e0;
+      color: #1a1a1a;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      border: 1px solid #c8c8c8;
+      width: fit-content;
+    }
+
+    @media (max-width: 860px) {
+      .slide { padding: 8vh 6vw 12vh; }
+      .split { grid-template-columns: 1fr; }
+      .cards, .values, .versus { grid-template-columns: 1fr; }
+      .versus { gap: 0.7rem; }
+      .vs-mid { display: none; }
+      h1, h2 { max-width: 22ch; }
+      .mock, .chat { max-width: 100%; }
+      .card { min-height: 0; }
+      .pane { padding: 6vh 7vw 10vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="deck">
+
+    <section class="slide">
+      <p class="kicker">Brown bag · 10 minutes</p>
+      <h1>Your favorite prompt is already getting lost.</h1>
+      <p class="lede wide">A lunch-hour tour of AI Cues — a wallet for the prompts you actually reuse, and a link you can hand to anyone.</p>
+      <p class="brand-mark">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path fill="none" stroke="#9b9b9b" stroke-width="1.5" stroke-linecap="square" d="M5 2.5H3.5v11H5M11 2.5h1.5v11H11"/>
+        </svg>
+        AI Cues
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Raise a hand if this is you</p>
+      <h2>Three things that keep happening.</h2>
+      <div class="cards">
+        <article class="card">
+          <p class="card-n">01</p>
+          <p>You found a prompt that actually works — and used it three times this week.</p>
+        </article>
+        <article class="card">
+          <p class="card-n">02</p>
+          <p>You cannot find it now. It is buried in ChatGPT, Claude, or a Slack thread from Tuesday.</p>
+        </article>
+        <article class="card">
+          <p class="card-n">03</p>
+          <p>Someone asks “can you send that prompt again?” and you start scrolling.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">The problem</p>
+      <h2>Chat history is a terrible filing cabinet.</h2>
+      <p class="lede wide">The useful sentences live in the same place as the throwaway ones. There is no “keep this.” There is only “maybe I can find it later.”</p>
+      <p class="body">Notes apps are not much better — they do not open ChatGPT for you. Copy, paste, switch tabs, hope you grabbed the right version.</p>
+    </section>
+
+    <section class="slide split-slide">
+      <div class="split">
+      <div class="pane dark">
+        <p class="kicker">How this started</p>
+        <h2>I wrote a prompt I did not want to lose.</h2>
+        <p class="lede">I needed AI to answer like a person, not a cheerful assistant. Shorter. Human. Still accurate.</p>
+      </div>
+      <div class="pane dark" style="background:#181818">
+        <blockquote class="quote">
+          Keep your responses short and to the point. Act more like a normal human than a chatbot. I want responses to feel human, with human-like mistakes in grammar and spelling, but keep the content spot on and correct.
+        </blockquote>
+        <p class="foot" style="margin-top:1rem">Then I pictured it vanishing into chat history. So I built a place to keep it.</p>
+      </div>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <p class="kicker">What it is</p>
+      <h1>A wallet for prompts you like.</h1>
+      <p class="lede wide">Save a cue once. Click it. ChatGPT, Claude, Gemini, or another tool opens with the words already filled in.</p>
+      <p class="body">That is the whole product. Store the prompt. Launch the chat. Stop digging.</p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">How it works</p>
+      <h2>Four steps. Then you are done.</h2>
+      <div class="flow">
+        <span class="flow-step">Save a prompt</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">Pick an AI</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">Launch</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">Chat opens ready</span>
+      </div>
+      <p class="lede">No new chatbot. No extra account for each tool. AI Cues remembers the words; your usual AI does the talking.</p>
+    </section>
+
+    <section class="slide split-slide">
+      <div class="split">
+      <div class="pane dark">
+        <p class="kicker">The wallet</p>
+        <h2>This is the whole app.</h2>
+        <p class="lede">A quiet list of cues you named. Click a row to launch. Edit when the wording gets better. Delete when you outgrow it.</p>
+        <p class="body">Guest mode works on this device. Sign in if you want it on your phone and laptop.</p>
+      </div>
+      <div class="pane paper">
+        <div class="mock" aria-hidden="true">
+          <div class="mock-top">
+            <span>Profile</span>
+            <span>you@work.com</span>
+            <span>Sign out</span>
+          </div>
+          <div class="mock-toolbar">
+            <span class="mock-btn">+ New prompt</span>
+            <span class="mock-select">Primary · ChatGPT</span>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Short and human</span>
+              <span class="row-snip">Keep responses short. Act like a person, not a chatbot…</span>
+            </div>
+            <div class="row-actions">
+              <svg class="globe" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M6 10.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2.25 6h7.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 1.5c1.2 1.35 1.875 3.075 1.875 4.5S7.2 8.85 6 10.2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 1.5C4.8 2.85 4.125 4.575 4.125 6S4.8 9.15 6 10.2" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Meeting notes → email</span>
+              <span class="row-snip">Turn these messy notes into a short follow-up email…</span>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Explain like I’m new</span>
+              <span class="row-snip">Explain this as if I just joined the team. No jargon…</span>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Calm customer reply</span>
+              <span class="row-snip">Write a kind, clear reply. Own the issue. Offer a next step…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section class="slide split-slide">
+      <div class="split">
+      <div class="pane dark">
+        <p class="kicker">The click</p>
+        <h2>One tap. The chat is already filled in.</h2>
+        <p class="lede">You do not copy. You do not hunt. You click the cue, pick ChatGPT or Claude, and start talking.</p>
+      </div>
+      <div class="pane paper">
+        <div class="chat" aria-hidden="true">
+          <p class="chat-name">chatgpt.com · new chat</p>
+          <div class="chat-box">Keep your responses short and to the point. Act more like a normal human than a chatbot. I want responses to feel human, with human-like mistakes in grammar and spelling, but keep the content spot on and correct.</div>
+          <p class="chat-send">Ready to send →</p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <p class="kicker">Your tools, already</p>
+      <h2>It opens the AIs you already use.</h2>
+      <div class="providers">
+        <span class="chip">ChatGPT</span>
+        <span class="chip">Claude</span>
+        <span class="chip">Gemini</span>
+        <span class="chip">Meta AI</span>
+        <span class="chip">Copilot</span>
+        <span class="chip">Grok</span>
+        <span class="chip">Perplexity</span>
+        <span class="chip">Mistral</span>
+        <span class="chip">DeepSeek</span>
+      </div>
+      <p class="lede wide">Set a primary for everyday clicks. Use the row menu when you want a different one just this once. Same prompt, whichever chat you are in today.</p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Then I made it shareable</p>
+      <h2>Stop pasting prompts into Slack.</h2>
+      <div class="versus">
+        <div class="vs-card">
+          <p class="vs-label">Before</p>
+          <p>“Wait, can you send that prompt again?” Screenshot. Wrong version. Someone edits it and now there are three copies.</p>
+        </div>
+        <div class="vs-mid">→</div>
+        <div class="vs-card good">
+          <p class="vs-label">With AI Cues</p>
+          <p>Share one prompt. Anyone with the link can open it and launch it in their own AI. They do not even need an account.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split-slide">
+      <div class="split">
+      <div class="pane dark">
+        <p class="kicker">Public wallet</p>
+        <h2>A page that is just your useful cues.</h2>
+        <p class="lede">Pick a short name. Publish the prompts you are happy to share. Keep the rest private.</p>
+        <p class="body" style="font-family:'IBM Plex Mono',monospace;color:#6f8fad">aicues.web.app/w/you</p>
+      </div>
+      <div class="pane paper">
+        <div class="mock" aria-hidden="true">
+          <div class="mock-top">
+            <span>AI Cues</span>
+            <span>Create account</span>
+          </div>
+          <p class="mock-tag">@you</p>
+          <div class="mock-toolbar">
+            <span></span>
+            <span class="mock-select">Primary · Claude</span>
+          </div>
+          <div class="row glow">
+            <div>
+              <span class="row-title">Meeting notes → email</span>
+              <span class="row-snip">Turn these messy notes into a short follow-up email…</span>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Short and human</span>
+              <span class="row-snip">Keep responses short. Act like a person, not a chatbot…</span>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="row-title">Explain like I’m new</span>
+              <span class="row-snip">Explain this as if I just joined the team. No jargon…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section class="slide light">
+      <p class="kicker">Why start using it</p>
+      <h2>The value, without the pitch.</h2>
+      <div class="values">
+        <div class="value">
+          <strong>Find it in two seconds</strong>
+          <span>Named cues, not a scavenger hunt through old chats.</span>
+        </div>
+        <div class="value">
+          <strong>Same words, any AI</strong>
+          <span>The prompt stays yours when you switch from ChatGPT to Claude next week.</span>
+        </div>
+        <div class="value">
+          <strong>Hand someone a link</strong>
+          <span>Share the exact wording. They click and go. No screenshot archaeology.</span>
+        </div>
+        <div class="value">
+          <strong>Private until you say so</strong>
+          <span>Nothing is public by default. The green globe means “this one is live.”</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Try it before you leave the room</p>
+      <h2>Sixty seconds.</h2>
+      <ol class="steps">
+        <li><span class="n">1</span><span>Open aicues.web.app</span></li>
+        <li><span class="n">2</span><span>Sign in — or continue as a guest on this device</span></li>
+        <li><span class="n">3</span><span>New prompt → paste something you reuse → save</span></li>
+        <li><span class="n">4</span><span>Click it. Watch your AI open with the text already there.</span></li>
+      </ol>
+      <p class="lede">When you have a cue you are proud of, hit Share. That is how teammates stop asking you to paste it again.</p>
+    </section>
+
+    <section class="slide light">
+      <p class="kicker">Let’s use it</p>
+      <h1>aicues.web.app</h1>
+      <p class="lede">Free, in the browser, no install. Save a prompt. Launch it. Share the ones worth repeating.</p>
+      <a class="cta" href="https://aicues.web.app/" target="_blank" rel="noopener noreferrer">Open AI Cues</a>
+      <p class="body" style="margin-top:1rem">Questions, complaints, “I already do this in Notes” — all welcome.</p>
+    </section>
+
+  </div>
+</body>
+</html>
