@@ -49,11 +49,20 @@
       color: var(--ink);
     }
 
-    .slide.split {
+    /* Inner grid: the host forces each .slide into a column with display:flex !important. */
+    .slide.split-slide {
+      padding: 0;
+      gap: 0;
+      justify-content: stretch;
+    }
+
+    .split {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0;
-      padding: 0;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
     }
 
     .kicker {
@@ -73,7 +82,7 @@
       font-weight: 500;
       letter-spacing: -0.03em;
       line-height: 1.08;
-      max-width: 18ch;
+      max-width: 22ch;
     }
 
     h1 { font-size: clamp(2.4rem, 6.2vw, 5.4rem); }
@@ -108,7 +117,7 @@
     }
 
     .pane {
-      padding: 8vh 7vw;
+      padding: 8vh 6vw 12vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -120,6 +129,7 @@
     .pane.paper { background: var(--paper); color: var(--ink); }
     .pane.paper .lede,
     .pane.paper .body { color: var(--muted); }
+    .pane.paper { align-items: center; }
 
     .cards {
       display: grid;
@@ -417,7 +427,7 @@
       grid-template-columns: 1fr auto 1fr;
       gap: 1rem;
       align-items: stretch;
-      max-width: 54rem;
+      width: min(52rem, 100%);
     }
 
     .vs-card {
@@ -472,13 +482,14 @@
 
     @media (max-width: 860px) {
       .slide { padding: 8vh 6vw 12vh; }
-      .slide.split { grid-template-columns: 1fr; }
+      .split { grid-template-columns: 1fr; }
       .cards, .values, .versus { grid-template-columns: 1fr; }
       .versus { gap: 0.7rem; }
       .vs-mid { display: none; }
       h1, h2 { max-width: 22ch; }
       .mock, .chat { max-width: 100%; }
       .card { min-height: 0; }
+      .pane { padding: 6vh 7vw 10vh; }
     }
   </style>
 </head>
@@ -523,7 +534,8 @@
       <p class="body">Notes apps are not much better — they do not open ChatGPT for you. Copy, paste, switch tabs, hope you grabbed the right version.</p>
     </section>
 
-    <section class="slide split">
+    <section class="slide split-slide">
+      <div class="split">
       <div class="pane dark">
         <p class="kicker">How this started</p>
         <h2>I wrote a prompt I did not want to lose.</h2>
@@ -534,6 +546,7 @@
           Keep your responses short and to the point. Act more like a normal human than a chatbot. I want responses to feel human, with human-like mistakes in grammar and spelling, but keep the content spot on and correct.
         </blockquote>
         <p class="foot" style="margin-top:1rem">Then I pictured it vanishing into chat history. So I built a place to keep it.</p>
+      </div>
       </div>
     </section>
 
@@ -559,7 +572,8 @@
       <p class="lede">No new chatbot. No extra account for each tool. AI Cues remembers the words; your usual AI does the talking.</p>
     </section>
 
-    <section class="slide split">
+    <section class="slide split-slide">
+      <div class="split">
       <div class="pane dark">
         <p class="kicker">The wallet</p>
         <h2>This is the whole app.</h2>
@@ -583,7 +597,12 @@
               <span class="row-snip">Keep responses short. Act like a person, not a chatbot…</span>
             </div>
             <div class="row-actions">
-              <svg class="globe" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.1" stroke="currentColor" stroke-width="1.5"/><path d="M6 1.9v8.2M1.9 6h8.2" stroke="currentColor" stroke-width="1.5"/></svg>
+              <svg class="globe" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M6 10.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2.25 6h7.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 1.5c1.2 1.35 1.875 3.075 1.875 4.5S7.2 8.85 6 10.2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 1.5C4.8 2.85 4.125 4.575 4.125 6S4.8 9.15 6 10.2" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
             </div>
           </div>
           <div class="row">
@@ -606,9 +625,11 @@
           </div>
         </div>
       </div>
+      </div>
     </section>
 
-    <section class="slide split">
+    <section class="slide split-slide">
+      <div class="split">
       <div class="pane dark">
         <p class="kicker">The click</p>
         <h2>One tap. The chat is already filled in.</h2>
@@ -620,6 +641,7 @@
           <div class="chat-box">Keep your responses short and to the point. Act more like a normal human than a chatbot. I want responses to feel human, with human-like mistakes in grammar and spelling, but keep the content spot on and correct.</div>
           <p class="chat-send">Ready to send →</p>
         </div>
+      </div>
       </div>
     </section>
 
@@ -656,7 +678,8 @@
       </div>
     </section>
 
-    <section class="slide split">
+    <section class="slide split-slide">
+      <div class="split">
       <div class="pane dark">
         <p class="kicker">Public wallet</p>
         <h2>A page that is just your useful cues.</h2>
@@ -693,6 +716,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
 
